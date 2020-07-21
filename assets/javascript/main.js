@@ -1,29 +1,35 @@
 class Cell {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
+    constructor(i, j, start, end) {
+        this.i = i;
+        this.j = j;
         this.level = 8;
+        this.start = start;
+        this.end = end;
     }
 }
 
 class Grid {
-    constructor(rows, columns) {
+    constructor(rows, columns, starti, startj, endi, endj) {
         this.rows = rows;
         this.columns = columns;
         this.grid = [];
-        this.createGrid();
+        this.createGrid(starti, startj, endi, endj);
     }
 
-    createGrid() {
+    createGrid(starti, startj, endi, endj) {
         for (let i = 1; i <= this.rows; i++) {
             let rowgrid = [];
             for (let j = 1; j <= this.columns; j++) {
-                rowgrid.push(new Cell(i, j));
+                rowgrid.push(new Cell(i, j, (i==starti && j==startj), (i==endi && j==endj)));
             }
             this.grid.push(rowgrid);
         }
     }
 }
+
+function djikstra(grid, start, end) {
+}
+
 
 
 // When the webpage is loaded for the first time, the board will be initialised
@@ -35,6 +41,8 @@ class Grid {
 let rows = 50, columns = 40;
 let gridObject = null;
 
+let starti = 35, startj = 5, endi = 5, endj = 45;
+
 window.onload = () => {
     let grid = document.getElementsByClassName('gridrow')[0];
     let classes = grid.classList;
@@ -43,6 +51,12 @@ window.onload = () => {
 
     gridObject = new Grid(rows, columns);
 }
+
+let temp = document.getElementById(starti+'-'+startj);
+temp.classList.add('start')
+temp = document.getElementById(endi+'-'+endj);
+temp.classList.add('end')
+
 
 
 // Variables that help define actions when the mouse moves over the nodes in
@@ -89,7 +103,7 @@ function cellFromUI(elem) {
     let rc = elemName.split('-');
     let row = parseInt(rc[0]);
     let col = parseInt(rc[1]);
-    return gridObject.grid[row][col];
+    return gridObject.grid[row-1][col-1];
 }
 
 function defineLevel(elem) {
