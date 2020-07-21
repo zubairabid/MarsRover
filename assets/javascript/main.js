@@ -27,7 +27,24 @@ class Grid {
     }
 }
 
-function djikstra(grid, start, end) {
+// pseudocode
+// push startNode onto openList
+// while(openList is not empty) {
+ // currentNode = find lowest f in openList
+ // if currentNode is final, return the successful path
+ // push currentNode onto closedList and remove from openList
+ // foreach neighbor of currentNode {
+     // if neighbor is not in openList {
+            // save g, h, and f then save the current parent
+            // add neighbor to openList
+     // }
+     // if neighbor is in openList but the current g is better than previous g {
+             // save g and f, then save the current parent
+     // }
+ // }
+
+
+function astar(grid, start, end) {
 }
 
 
@@ -41,6 +58,7 @@ function djikstra(grid, start, end) {
 let rows = 50, columns = 40;
 let gridObject = null;
 
+// hardcoded for quick prototyping, refactor
 let starti = 35, startj = 5, endi = 5, endj = 45;
 
 window.onload = () => {
@@ -49,9 +67,10 @@ window.onload = () => {
     rows = parseInt(classes[2]);
     columns = parseInt(classes[3]);
 
-    gridObject = new Grid(rows, columns);
+    gridObject = new Grid(rows, columns, starti, startj, endi, endj);
 }
 
+// Adding the start/stop to the HTML board. It already exists on representation
 let temp = document.getElementById(starti+'-'+startj);
 temp.classList.add('start')
 temp = document.getElementById(endi+'-'+endj);
@@ -62,7 +81,7 @@ temp.classList.add('end')
 // Variables that help define actions when the mouse moves over the nodes in
 // the grid
 let level = 12;
-let pressed = false;
+let painting = false;
 
 // Random variables atm
 let levels = [];
@@ -76,13 +95,13 @@ for (let i = 1; i <= 40; i++) {
     for (let j = 1; j <= 50; j++) {
         let mouseTarget = document.getElementById(i+'-'+j);
         mouseTarget.addEventListener('mousedown', e => {
-            pressed = true;
-            console.log('mousedown! pressed = ', pressed);
+            painting = true;
+            console.log('mousedown! pressed = ', painting);
         });
 
         mouseTarget.addEventListener('mouseup', e => {
-            pressed = false;
-            console.log('mouseup! pressed = ', pressed);
+            painting = false;
+            console.log('mouseup! pressed = ', painting);
         });
 
         mouseTarget.addEventListener('click', e => {
@@ -90,7 +109,7 @@ for (let i = 1; i <= 40; i++) {
         })
 
         mouseTarget.addEventListener('mouseenter', e => {
-            if (pressed) {
+            if (painting) {
                 console.log("Mouse entered ", mouseTarget.id, 'while clicked');
                 defineLevel(mouseTarget);
             }
