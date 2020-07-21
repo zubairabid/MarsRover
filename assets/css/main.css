@@ -8,6 +8,15 @@
     margin: 1px;
 }
 
+.cell.wall {
+    background-color: black;
+}
+
+.cell:hover {
+    /** background-color: rgba(240, 240, 240, 90);**/
+    background-color: aquamarine;
+}
+
 .gridrow {
     height: 2.5%;
 }
