@@ -1,0 +1,13 @@
+.fullscreen {
+    height: 100vh;
+}
+
+.cell {
+    width: 2%;
+    background-color: rgb(240, 240, 240);
+    margin: 1px;
+}
+
+.gridrow {
+    height: 2.5%;
+}
