@@ -156,6 +156,10 @@ function paintState(cell) {
 
 // Paints out the final path
 function paintPath(path) {
+    if (path == null) {
+        console.log("No path :(");
+        return;
+    }
     for (let i = 0; i < path.length; i++) {
         let cell = path[i];
         let elem = uiFromCell(cell);
@@ -330,11 +334,12 @@ let level = 14;
 let painting = false;
 let moveStart = false;
 let moveEnd = false;
+let execution = false;
 
 let starti = 0, startj = 0, endi = 0, endj = 0;
 
 window.addEventListener('load', () => {
-    console.log("load");
+    //console.log("load");
     let grid = document.getElementsByClassName('gridrow')[0];
     let classes = grid.classList;
 
@@ -348,7 +353,7 @@ window.addEventListener('load', () => {
     endi = 4;
     endj = 44;
 
-    console.log("initing grid");
+    //console.log("initing grid");
     gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL);
 
     // Event listeners for all nodes. When the cell style is updated, so is
@@ -357,7 +362,7 @@ window.addEventListener('load', () => {
         painting = false;
         moveStart = false;
         moveEnd = false;
-        console.log('mouseup! pressed = ', painting);
+        //console.log('mouseup! pressed = ', painting);
     });
 
     for (let i = 0; i < 40; i++) {
@@ -366,6 +371,8 @@ window.addEventListener('load', () => {
             let cell = cellFromUI(mouseTarget, gridObject.grid);
 
             mouseTarget.addEventListener('mousedown', e => {
+                if (execution)
+                    return;
                 if (i == starti && j == startj) {
                     moveStart = true;
                 }
@@ -374,17 +381,21 @@ window.addEventListener('load', () => {
                 }
                 else {
                     painting = true;
-                    console.log('mousedown! pressed = ', painting);
+                    //console.log('mousedown! pressed = ', painting);
                 }
             });
 
             mouseTarget.addEventListener('click', e => {
+                if (execution)
+                    return;
                 let cell = cellFromUI(mouseTarget, gridObject.grid);
                 setLevel(cell, level);
                 paintCell(cell);
             })
 
             mouseTarget.addEventListener('mouseleave', e => {
+                if (execution)
+                    return;
                 if (moveStart) {
                     cell.start = false;
                     paintCell(cell);
@@ -396,6 +407,8 @@ window.addEventListener('load', () => {
             });
 
             mouseTarget.addEventListener('mouseenter', e => {
+                if (execution)
+                    return;
                 if (moveStart) {
                     starti = i;
                     startj = j;
@@ -409,7 +422,7 @@ window.addEventListener('load', () => {
                     paintCell(cell);
                 }
                 else if (painting) {
-                    console.log("Mouse entered ", mouseTarget.id, 'while clicked');
+                    //console.log("Mouse entered ", mouseTarget.id, 'while clicked');
                     let cell = cellFromUI(mouseTarget, gridObject.grid);
                     setLevel(cell, level);
                     paintCell(cell);
