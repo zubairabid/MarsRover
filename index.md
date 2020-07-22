@@ -10,7 +10,7 @@ columns: 50
 {% for row in (1..page.rows) %}
 <div class="d-flex gridrow {{ page.rows }} {{ page.columns }}">
 {% for col in (1..page.columns) %}
-<div class="cell l8" id="{{ row }}-{{ col }}"> </div>
+<div class="cell l8" id="{{ row | minus: 1 }}-{{ col | minus: 1 }}"> </div>
 {% endfor %}
 </div>
 {% endfor %}

@@ -87,6 +87,20 @@
     background-color: aquamarine;
 }
 
+.cell.visited {
+    /**border: 5px solid white;**/
+    background-color: white;
+}
+
+.cell.closed {
+    /**border: 5px solid black;**/
+    background-color: black;
+}
+
+.cell.path {
+    background-color: mediumvioletred;
+}
+
 .gridrow {
     height: 2.5%;
 }

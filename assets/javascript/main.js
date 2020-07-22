@@ -8,6 +8,7 @@ class Cell {
         this.visited = false;
         this.closed = false;
         this.parent = null;
+        this.path = false;
 
         this.distance = 0;
         this.heuristic = 0;
@@ -24,9 +25,9 @@ class Grid {
     }
 
     createGrid(starti, startj, endi, endj) {
-        for (let i = 1; i <= this.rows; i++) {
+        for (let i = 0; i < this.rows; i++) {
             let rowgrid = [];
-            for (let j = 1; j <= this.columns; j++) {
+            for (let j = 0; j < this.columns; j++) {
                 rowgrid.push(new Cell(i, j, (i==starti && j==startj), (i==endi && j==endj)));
             }
             this.grid.push(rowgrid);
@@ -34,35 +35,79 @@ class Grid {
     }
 }
 
-// pseudocode
-// push startNode onto openList
-// while(openList is not empty) {
- // currentNode = find lowest f in openList
- // if currentNode is final, return the successful path
- // push currentNode onto closedList and remove from openList
- // foreach neighbor of currentNode {
-     // if neighbor is not in openList {
-            // save g, h, and f then save the current parent
-            // add neighbor to openList
-     // }
-     // if neighbor is in openList but the current g is better than previous g {
-             // save g and f, then save the current parent
-     // }
- // }
-
 const INF = 1000
+
+function updateState(cell) {
+    options = ['visited', 'closed', 'path'];
+    elem = uiFromCell(cell);
+    elem.classList.remove(...options);
+    if (cell.path)
+        elem.classList.add('path');
+    else if (cell.closed)
+        elem.classList.add('closed');
+    else if (cell.visited)
+        elem.classList.add('visited');
+}
+
+function getCost(currentCell, neighbour, costFunction) {
+    cost = costFunction(currentCell, neighbour);
+    return cost;
+}
+
+function tempcost(currentCell, neighbour) {
+    let diff = currentCell.level - neighbour.level;
+    diff = Math.abs(diff);
+    diff += 1;
+    return diff>5?INF:diff;
+}
+
+function getHeuristic(cell, end) {
+    let d1 = Math.abs(cell.i - end.i);
+    let d2 = Math.abs(cell.j - end.j);
+    return d1+d2;
+}
+
+function getNeighbours(grid, cell) {
+    neighbours = [];
+    let i = 0, j = 0;
+    let rows = grid.length, columns = grid[0].length;
+
+    i = cell.i + 1;
+    if (i < rows)
+        neighbours.push(grid[i][cell.j]);
+    i = cell.i - 1;
+    if (i >= 0)
+        neighbours.push(grid[i][cell.j]);
+    j = cell.j-1;
+    if (j >= 0)
+        neighbours.push(grid[cell.i][j])
+    j = cell.j+1;
+    if (j < columns)
+        neighbours.push(grid[cell.i][j])
+
+    return neighbours;
+}
 
 function astar(grid, start, end, costFunction) {
     openList = [];
     openList.push(start);
+    let counter = 0;
     while (openList.length > 0) {
+        counter += 1;
+
         currentCell = openList[0];
+        currentCell.closed = true;
+        setTimeout(()=>{updateState(currentCell);}, 20*counter);
+        //updateState(currentCell);
+        console.log("examining ", currentCell.i, currentCell.j, " at score ", currentCell.score);
 
         // If currentCell is final, return the successful path
         if (currentCell == end) {
             path = [];
             let curr = currentCell;
             while (curr.parent != null) {
+                curr.path = true;
+                setTimeout(()=>{updateState(currentCell);}, 20*counter);
                 path.push(curr);
                 curr = curr.parent;
             }   
@@ -72,15 +117,18 @@ function astar(grid, start, end, costFunction) {
         // push currentCell to closedList and remove from openList
         openList = openList.slice(1);
 
+        // TODO improve getNeighbours
         let neighbours = getNeighbours(grid, currentCell);
         // foreach neighbour of currentCell
+        console.log("neighbours: ", neighbours);
         for (let i = 0; i < neighbours.length; i++) {
             let neighbour = neighbours[i];
+            //console.log("with neighbour: ", neighbour);
 
             // Compute costs and distances
-            // TODO write getCost
+            // TODO improve getCost
             let cost = getCost(currentCell, neighbour, costFunction);
-            if (neighbour.closed || cost > INF) {
+            if (neighbour.closed || cost >= INF) {
                 continue;
             }
 
@@ -91,9 +139,12 @@ function astar(grid, start, end, costFunction) {
             // gets is the "best" distance
             if (!neighbour.visited) {
                 bestDist = true;
-                // TODO write getHeuristic
+                // TODO improve getHeuristic
                 neighbour.heuristic = getHeuristic(neighbour, end);
                 neighbour.visited = true;
+                setTimeout(()=>{updateState(neighbour)}, 20*counter);
+                //updateState(neighbour);
+                // replace above with TODO updateVisited(neighbour, end)
                 openList.push(neighbour);
             }
             else if (dist < neighbour.dist) {
@@ -110,10 +161,19 @@ function astar(grid, start, end, costFunction) {
         
         // Update openList
         // TODO write the sort
-        sort(openList);
+        openList.sort(compareCells);
+
+
     }
 
     return [];
+}
+
+
+function compareCells(a, b) {
+    if (a.score < b.score) return -1;
+    if (a.score > b.score) return 1;
+    return 0;
 }
 
 
@@ -128,7 +188,7 @@ let rows = 50, columns = 40;
 let gridObject = null;
 
 // hardcoded for quick prototyping, refactor
-let starti = 35, startj = 5, endi = 5, endj = 45;
+let starti = 34, startj = 4, endi = 4, endj = 44;
 
 window.onload = () => {
     let grid = document.getElementsByClassName('gridrow')[0];
@@ -149,7 +209,7 @@ temp.classList.add('end')
 
 // Variables that help define actions when the mouse moves over the nodes in
 // the grid
-let level = 12;
+let level = 14;
 let painting = false;
 
 // Random variables atm
@@ -170,8 +230,8 @@ window.addEventListener('mouseup', e => {
 });
 
 
-for (let i = 1; i <= 40; i++) {
-    for (let j = 1; j <= 50; j++) {
+for (let i = 0; i < 40; i++) {
+    for (let j = 0; j < 50; j++) {
         let mouseTarget = document.getElementById(i+'-'+j);
         mouseTarget.addEventListener('click', e => {
             defineLevel(mouseTarget);
@@ -191,7 +251,13 @@ function cellFromUI(elem) {
     let rc = elemName.split('-');
     let row = parseInt(rc[0]);
     let col = parseInt(rc[1]);
-    return gridObject.grid[row-1][col-1];
+    return gridObject.grid[row][col];
+}
+
+function uiFromCell(cell) {
+    let name = (cell.i)+'-'+(cell.j);
+    let elem = document.getElementById(name);
+    return elem;
 }
 
 function defineLevel(elem) {
