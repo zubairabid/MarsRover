@@ -2,6 +2,12 @@
     height: 100vh;
 }
 
+.colourpicker {
+    height: 2em;
+    width: 12.5%;
+    color: white;
+}
+
 .cell {
     width: 2%;
     background-color: rgb(240, 240, 240);
@@ -12,64 +18,112 @@
 .cell.l1 {
     background-color: rgb(0, 0, 200);
 }
+#level1{
+    background-color: rgb(0, 0, 200);
+}
 
 .cell.l2 {
+    background-color: rgb(50, 50, 255);
+}
+#level2{
     background-color: rgb(50, 50, 255);
 }
 
 .cell.l3 {
     background-color: rgb(75, 75, 255);
 }
+#level3 {
+    background-color: rgb(75, 75, 255);
+}
 
 .cell.l4 {
+    background-color: rgb(100, 100, 255);
+}
+#level4 {
     background-color: rgb(100, 100, 255);
 }
 
 .cell.l5 {
     background-color: rgb(125, 125, 255);
 }
+#level5 {
+    background-color: rgb(125, 125, 255);
+}
 
 .cell.l6 {
+    background-color: rgb(150, 150, 255);
+}
+#level6 {
     background-color: rgb(150, 150, 255);
 }
 
 .cell.l7 {
     background-color: rgb(175, 175, 255);
 }
+#level7 {
+    background-color: rgb(175, 175, 255);
+}
 
 .cell.l8 {
+    background-color: rgb(200, 200, 255);
+}
+#level8 {
     background-color: rgb(200, 200, 255);
 }
 
 .cell.l9 {
     background-color: rgb(255, 200, 200);
 }
+#level9 {
+    background-color: rgb(255, 200, 200);
+}
 
 .cell.l10 {
+    background-color: rgb(255, 175, 175);
+}
+#level10 {
     background-color: rgb(255, 175, 175);
 }
 
 .cell.l11 {
     background-color: rgb(255, 150, 150);
 }
+#level11 {
+    background-color: rgb(255, 150, 150);
+}
 
 .cell.l12 {
+    background-color: rgb(255, 125, 125);
+}
+#level12 {
     background-color: rgb(255, 125, 125);
 }
 
 .cell.l13 {
     background-color: rgb(255, 100, 100);
 }
+#level13 {
+    background-color: rgb(255, 100, 100);
+}
 
 .cell.l14 {
+    background-color: rgb(255, 75, 75);
+}
+#level14 {
     background-color: rgb(255, 75, 75);
 }
 
 .cell.l15 {
     background-color: rgb(255, 50, 50);
 }
+#level15 {
+    background-color: rgb(255, 50, 50);
+}
 
 .cell.l16 {
+    background-color: rgb(200, 0, 0);
+}
+#level16 {
     background-color: rgb(200, 0, 0);
 }
 

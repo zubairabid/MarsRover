@@ -53,6 +53,21 @@ class Grid {
     }
 }
 
+function resetSearch(grid) {
+    let rows = grid.length, columns = grid[0].length;
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            let cell = grid[i][j];
+            cell.visited = false;
+            cell.path = false;
+            cell.closed = false;
+
+            paintCell(cell);
+            paintCellPath(cell);
+        }
+    }
+}
+
 function getNeighbours(grid, cell) {
     neighbours = [];
     let i = 0, j = 0;
@@ -114,13 +129,13 @@ function setLevel(cell, level) {
 
 // Takes a cell and updates the UI paint accordingly
 function paintCell(cell) {
-    paintStart(cell);
-    paintEnd(cell);
-    paintLevel(cell);
-    paintState(cell);
+    paintCellStart(cell);
+    paintCellEnd(cell);
+    paintCellLevel(cell);
+    paintCellState(cell);
 }
 
-function paintStart(cell) {
+function paintCellStart(cell) {
     let elem = uiFromCell(cell);
     if (cell.start)
         elem.classList.add('start');
@@ -128,7 +143,7 @@ function paintStart(cell) {
         elem.classList.remove('start');
 }
 
-function paintEnd(cell) {
+function paintCellEnd(cell) {
     let elem = uiFromCell(cell);
     if (cell.end)
         elem.classList.add('end');
@@ -136,7 +151,7 @@ function paintEnd(cell) {
         elem.classList.remove('end');
 }
 
-function paintLevel(cell) {
+function paintCellLevel(cell) {
     let elem = uiFromCell(cell);
 
     elem.classList.remove(...levels);
@@ -144,7 +159,7 @@ function paintLevel(cell) {
     //console.log(cell);
 }
 
-function paintState(cell) {
+function paintCellState(cell) {
     let elem = uiFromCell(cell);
 
     elem.classList.remove(...stateOptions);
@@ -152,6 +167,15 @@ function paintState(cell) {
         elem.classList.add('closed');
     else if (cell.visited)
         elem.classList.add('visited');
+}
+
+function paintCellPath(cell) {
+    let elem = uiFromCell(cell);
+
+    if (cell.path)
+        elem.classList.add('path');
+    else
+        elem.classList.remove('path');
 }
 
 // Paints out the final path
@@ -240,7 +264,7 @@ function astar(grid, start, end, costFunction, heuristicFunction, delay) {
             currentCell.closed = true;
 
             // paint the cell 
-            setTimeout(()=>{paintState(currentCell);}, delay*counter);
+            setTimeout(()=>{paintCellState(currentCell);}, delay*counter);
 
             // If currentCell is final, return the successful path
             if (currentCell == end) {
@@ -286,7 +310,7 @@ function astar(grid, start, end, costFunction, heuristicFunction, delay) {
                     neighbour.visited = true;
 
                     // paint the cell
-                    setTimeout(()=>{paintState(neighbour)}, delay*counter);
+                    setTimeout(()=>{paintCellState(neighbour)}, delay*counter);
 
                     openList.push(neighbour);
                 }
@@ -430,14 +454,52 @@ window.addEventListener('load', () => {
             });
         }
     }
+    let tempElem = document.getElementById('resetsearch')
+    tempElem.addEventListener('click', e => {
+        resetSearch(gridObject.grid);
+    });
+
+    tempElem = document.getElementById('search');
+    tempElem.addEventListener('click', e => {
+        run(10);
+    });
+
+    async function run (delay) {
+        execution = true;
+        let start = gridObject.grid[starti][startj];
+        let end = gridObject.grid[endi][endj];
+        let pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
+        //console.log("happens after", pathdel);
+        setTimeout(()=>{paintPath(pathdel.path);}, pathdel.time*delay);
+        //setTimeout(()=>{console.log("complete")}, timedelay*delay);
+        setTimeout(()=>{execution = false;}, pathdel.time*delay);
+    }
 
 });
 
-async function run (delay) {
-    let start = gridObject.grid[starti][startj];
-    let end = gridObject.grid[endi][endj];
-    let pathdel = await astar(gridObject.grid, start, end, energyCost, manhattanDist, delay);
-    //console.log("happens after", pathdel);
-    setTimeout(()=>{paintPath(pathdel.path);}, pathdel.time*delay);
-    //setTimeout(()=>{console.log("complete")}, timedelay*delay);
+for (let i = 1; i <= 16; i++) {
+    let id = "level"+i;
+    let elem = document.getElementById(id);
+
+    elem.addEventListener('click', e => {
+        level = i;
+        let resetCounter = document.getElementById('crlvl');
+        resetCounter.innerText = level;
+    });
 }
+
+let optimFunction = energyCost
+
+let optimisationOptions = ['energy', 'time']
+optimisationOptions.forEach(name => {
+    let optElem = document.getElementById(name);
+    optElem.addEventListener('click', e => {
+        if (name == 'energy')
+            optimFunction = energyCost;
+        else if (name == 'time')
+            optimFunction = timeCost;
+
+        let cropt = document.getElementById('cropt');
+        cropt.innerText = name;
+    });
+});
