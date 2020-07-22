@@ -74,8 +74,6 @@ function getNeighbours(grid, cell) {
     return neighbours;
 }
 
-const INF = 1000
-
 ///////////////////////
 //  canvasHelper.js  //
 ///////////////////////
@@ -90,12 +88,12 @@ let stateOptions = ['visited', 'closed'];
 
 // Takes an HTML div with id of format num-num and returns the corresponding
 // `cell` on the functional `grid`
-function cellFromUI(elem) {
+function cellFromUI(elem, grid) {
     let elemName = elem.id;
     let rc = elemName.split('-');
     let row = parseInt(rc[0]);
     let col = parseInt(rc[1]);
-    return gridObject.grid[row][col];
+    return grid[row][col];
 }
 
 // Takes a `cell` from the functional `grid` and returns the corresponding 
@@ -123,17 +121,19 @@ function paintCell(cell) {
 }
 
 function paintStart(cell) {
-    if (cell.start) {
-        let elem = uiFromCell(cell);
+    let elem = uiFromCell(cell);
+    if (cell.start)
         elem.classList.add('start');
-    }
+    else
+        elem.classList.remove('start');
 }
 
 function paintEnd(cell) {
-    if (cell.end) {
-        let elem = uiFromCell(cell);
+    let elem = uiFromCell(cell);
+    if (cell.end)
         elem.classList.add('end');
-    }
+    else
+        elem.classList.remove('end');
 }
 
 function paintLevel(cell) {
@@ -171,12 +171,31 @@ function paintPath(path) {
 //  algorithms/pathHelpers.js  //
 /////////////////////////////////
 
+const INF = 1000
+
 function getCost(currentCell, neighbour, costFunction) {
     cost = costFunction(currentCell, neighbour);
     return cost;
 }
 
-function tempcost(currentCell, neighbour) {
+function timeCost(currentCell, neighbour) {
+    let diff = currentCell.level - neighbour.level;
+
+    let cost = 10;
+    if (diff > 0) {
+        cost = cost + diff;
+    }
+    else if (diff < 0) {
+        diff = -1*diff;
+        cost = cost - 2*diff;
+    }
+    if (diff > 4)
+        cost = INF;
+
+    return cost;
+}
+
+function energyCost(currentCell, neighbour) {
     let diff = currentCell.level - neighbour.level;
 
     let cost = 1;
@@ -205,80 +224,89 @@ function manhattanDist(cell, end) {
 ///////////////////////////
 
 function astar(grid, start, end, costFunction, heuristicFunction, delay) {
-    // Initialise the blank "open list"
-    let openList = [];
-    openList.push(start);
+    return new Promise(resolve => {
+        // Initialise the blank "open list"
+        let openList = [];
+        openList.push(start);
 
-    // counter is used to delay the timer
-    let counter = 0;
-    while (openList.length > 0) {
-        currentCell = openList[0];
-        currentCell.closed = true;
+        // counter is used to delay the timer
+        let counter = 0;
+        while (openList.length > 0) {
+            currentCell = openList[0];
+            currentCell.closed = true;
 
-        // paint the cell 
-        setTimeout(()=>{paintState(currentCell);}, delay*counter);
+            // paint the cell 
+            setTimeout(()=>{paintState(currentCell);}, delay*counter);
 
-        // If currentCell is final, return the successful path
-        if (currentCell == end) {
-            path = [];
-            let curr = currentCell;
-            while (curr!= null) {
-                curr.path = true;
-                path.push(curr);
-                curr = curr.parent;
-            }   
-            return path.reverse(), counter;
+            // If currentCell is final, return the successful path
+            if (currentCell == end) {
+                path = [];
+                let curr = currentCell;
+                while (curr!= null) {
+                    curr.path = true;
+                    path.push(curr);
+                    curr = curr.parent;
+                }   
+                //return path.reverse(), counter;
+                let temp = {
+                    path: path.reverse(),
+                    time: counter
+                }
+                resolve(temp);
+                return;
+            }
+
+            // push currentCell to closedList and remove from openList
+            openList = openList.slice(1);
+
+            let neighbours = getNeighbours(grid, currentCell);
+
+            // foreach neighbour of currentCell
+            for (let i = 0; i < neighbours.length; i++) {
+                let neighbour = neighbours[i];
+
+                // Compute costs and distances
+                let cost = getCost(currentCell, neighbour, costFunction);
+                if (neighbour.closed || cost >= INF) {
+                    continue;
+                }
+
+                let dist = currentCell.distance + cost;
+                let bestDist = false;
+
+                // If the neighbour hasn't been visited, whichever distance it
+                // gets is the "best" distance
+                if (!neighbour.visited) {
+                    bestDist = true;
+                    neighbour.heuristic = heuristicFunction(neighbour, end);
+                    neighbour.visited = true;
+
+                    // paint the cell
+                    setTimeout(()=>{paintState(neighbour)}, delay*counter);
+
+                    openList.push(neighbour);
+                }
+                else if (dist < neighbour.dist) {
+                    bestDist = true;
+                }
+
+                // If it is the best, update the neighbour's distance/score/parent
+                if (bestDist) {
+                    neighbour.distance = dist;
+                    neighbour.parent = currentCell;
+                    neighbour.score = neighbour.distance + neighbour.heuristic;
+                }
+            }
+
+            // Update openList
+            // TODO write the sort
+            openList.sort(compareCells);
+            counter += 1;
         }
 
-        // push currentCell to closedList and remove from openList
-        openList = openList.slice(1);
-
-        let neighbours = getNeighbours(grid, currentCell);
-
-        // foreach neighbour of currentCell
-        for (let i = 0; i < neighbours.length; i++) {
-            let neighbour = neighbours[i];
-
-            // Compute costs and distances
-            let cost = getCost(currentCell, neighbour, costFunction);
-            if (neighbour.closed || cost >= INF) {
-                continue;
-            }
-
-            let dist = currentCell.distance + cost;
-            let bestDist = false;
-
-            // If the neighbour hasn't been visited, whichever distance it
-            // gets is the "best" distance
-            if (!neighbour.visited) {
-                bestDist = true;
-                neighbour.heuristic = heuristicFunction(neighbour, end);
-                neighbour.visited = true;
-
-                // paint the cell
-                setTimeout(()=>{paintState(neighbour)}, delay*counter);
-                
-                openList.push(neighbour);
-            }
-            else if (dist < neighbour.dist) {
-                bestDist = true;
-            }
-
-            // If it is the best, update the neighbour's distance/score/parent
-            if (bestDist) {
-                neighbour.distance = dist;
-                neighbour.parent = currentCell;
-                neighbour.score = neighbour.distance + neighbour.heuristic;
-            }
-        }
-        
-        // Update openList
-        // TODO write the sort
-        openList.sort(compareCells);
-        counter += 1;
-    }
-
-    return [], counter;
+        //return [], counter;
+        resolve([]);
+    });
 }
 
 ///////////////
@@ -300,10 +328,13 @@ let gridObject = null;
 // the grid
 let level = 14;
 let painting = false;
+let moveStart = false;
+let moveEnd = false;
 
 let starti = 0, startj = 0, endi = 0, endj = 0;
 
-window.onload = () => {
+window.addEventListener('load', () => {
+    console.log("load");
     let grid = document.getElementsByClassName('gridrow')[0];
     let classes = grid.classList;
 
@@ -317,45 +348,83 @@ window.onload = () => {
     endi = 4;
     endj = 44;
 
+    console.log("initing grid");
     gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL);
-}
 
-// Event listeners for all nodes. When the cell style is updated, so is
-// the node in the JavaScript representation
-window.addEventListener('mouseup', e => {
-    painting = false;
-    console.log('mouseup! pressed = ', painting);
-});
+    // Event listeners for all nodes. When the cell style is updated, so is
+    // the node in the JavaScript representation
+    window.addEventListener('mouseup', e => {
+        painting = false;
+        moveStart = false;
+        moveEnd = false;
+        console.log('mouseup! pressed = ', painting);
+    });
 
-for (let i = 0; i < 40; i++) {
-    for (let j = 0; j < 50; j++) {
-        let mouseTarget = document.getElementById(i+'-'+j);
+    for (let i = 0; i < 40; i++) {
+        for (let j = 0; j < 50; j++) {
+            let mouseTarget = document.getElementById(i+'-'+j);
+            let cell = cellFromUI(mouseTarget, gridObject.grid);
 
-        mouseTarget.addEventListener('mousedown', e => {
-            painting = true;
-            console.log('mousedown! pressed = ', painting);
-        });
+            mouseTarget.addEventListener('mousedown', e => {
+                if (i == starti && j == startj) {
+                    moveStart = true;
+                }
+                else if (i == endi && j == endj) {
+                    moveEnd = true;
+                }
+                else {
+                    painting = true;
+                    console.log('mousedown! pressed = ', painting);
+                }
+            });
 
-        mouseTarget.addEventListener('click', e => {
-            let cell = cellFromUI(mouseTarget);
-            setLevel(cell, level);
-            paintCell(cell);
-        })
-
-        mouseTarget.addEventListener('mouseenter', e => {
-            if (painting) {
-                console.log("Mouse entered ", mouseTarget.id, 'while clicked');
-                let cell = cellFromUI(mouseTarget);
+            mouseTarget.addEventListener('click', e => {
+                let cell = cellFromUI(mouseTarget, gridObject.grid);
                 setLevel(cell, level);
                 paintCell(cell);
-            }
-        });
-    }
-}
+            })
 
-function run(delay) {
+            mouseTarget.addEventListener('mouseleave', e => {
+                if (moveStart) {
+                    cell.start = false;
+                    paintCell(cell);
+                }
+                else if (moveEnd) {
+                    cell.end = false;
+                    paintCell(cell);
+                }
+            });
+
+            mouseTarget.addEventListener('mouseenter', e => {
+                if (moveStart) {
+                    starti = i;
+                    startj = j;
+                    cell.start = true;
+                    paintCell(cell);
+                }
+                else if (moveEnd) {
+                    endi = i;
+                    endj = j;
+                    cell.end = true;
+                    paintCell(cell);
+                }
+                else if (painting) {
+                    console.log("Mouse entered ", mouseTarget.id, 'while clicked');
+                    let cell = cellFromUI(mouseTarget, gridObject.grid);
+                    setLevel(cell, level);
+                    paintCell(cell);
+                }
+            });
+        }
+    }
+
+});
+
+async function run (delay) {
     let start = gridObject.grid[starti][startj];
     let end = gridObject.grid[endi][endj];
-    let path, timedelay = astar(gridObject.grid, start, end, tempcost, manhattanDist, delay);
-    setTimeout(()=>{paintPath(path);}, timedelay*delay);
+    let pathdel = await astar(gridObject.grid, start, end, energyCost, manhattanDist, delay);
+    //console.log("happens after", pathdel);
+    setTimeout(()=>{paintPath(pathdel.path);}, pathdel.time*delay);
+    //setTimeout(()=>{console.log("complete")}, timedelay*delay);
 }
