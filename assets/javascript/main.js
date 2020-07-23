@@ -21,12 +21,6 @@ class Cell {
     }
 }
 
-function compareCells(a, b) {
-    if (a.score < b.score) return -1;
-    if (a.score > b.score) return 1;
-    return 0;
-}
-
 function cellApply(cell, distortionCell) {
     let currentLevel = cell.level;
     
@@ -43,6 +37,12 @@ function cellApply(cell, distortionCell) {
     newLevel = newLevel < 1? 1 : newLevel;
     //console.log("level: ", newLevel);
     cell.level = newLevel;
+}
+
+function compareCells(a, b) {
+    if (a.score < b.score) return -1;
+    if (a.score > b.score) return 1;
+    return 0;
 }
 
 //////////////////////////
@@ -309,6 +309,96 @@ function manhattanDist(cell, end) {
 }
 
 ///////////////////////////
+//  algorithms/djikstra.js  //
+///////////////////////////
+
+function djikstra(grid, start, end, costFunction, delay) {
+    return new Promise(resolve => {
+        // Initialise the blank "open list"
+        let openList = [];
+        openList.push(start);
+
+        // counter is used to delay the timer
+        let counter = 0;
+        while (openList.length > 0) {
+            currentCell = openList[0];
+            currentCell.closed = true;
+
+            // paint the cell 
+            setTimeout(()=>{paintCellState(currentCell);}, delay*counter);
+
+            // If currentCell is final, return the successful path
+            if (currentCell == end) {
+                path = [];
+                let curr = currentCell;
+                while (curr!= null) {
+                    curr.path = true;
+                    path.push(curr);
+                    curr = curr.parent;
+                }   
+                //return path.reverse(), counter;
+                let temp = {
+                    path: path.reverse(),
+                    time: counter
+                }
+                resolve(temp);
+                return;
+            }
+
+            // push currentCell to closedList and remove from openList
+            openList = openList.slice(1);
+
+            let neighbours = getNeighbours(grid, currentCell);
+
+            // foreach neighbour of currentCell
+            for (let i = 0; i < neighbours.length; i++) {
+                let neighbour = neighbours[i];
+
+                // Compute costs and distances
+                let cost = getCost(currentCell, neighbour, costFunction);
+                if (neighbour.closed || cost >= INF) {
+                    continue;
+                }
+
+                let dist = currentCell.distance + cost;
+                let bestDist = false;
+
+                // If the neighbour hasn't been visited, whichever distance it
+                // gets is the "best" distance
+                if (!neighbour.visited) {
+                    bestDist = true;
+                    neighbour.visited = true;
+
+                    // paint the cell
+                    setTimeout(()=>{paintCellState(neighbour)}, delay*counter);
+
+                    openList.push(neighbour);
+                }
+                else if (dist < neighbour.dist) {
+                    bestDist = true;
+                }
+
+                // If it is the best, update the neighbour's distance/score/parent
+                if (bestDist) {
+                    neighbour.distance = dist;
+                    neighbour.parent = currentCell;
+                    neighbour.score = neighbour.distance;
+                }
+            }
+
+            // Update openList
+            // TODO write the sort
+            openList.sort(compareCells);
+            counter += 1;
+        }
+
+        //return [], counter;
+        resolve([]);
+    });
+}
+
+
+///////////////////////////
 //  algorithms/astar.js  //
 ///////////////////////////
 
@@ -497,6 +587,9 @@ let painting = false;
 let moveStart = false;
 let moveEnd = false;
 let execution = false;
+let func = 'astar';
+
+let tick = 100;
 
 let starti = 0, startj = 0, endi = 0, endj = 0;
 
@@ -620,15 +713,23 @@ window.addEventListener('load', () => {
     tempElem.addEventListener('click', e => {
         if (execution)
             return;
-        run(10);
+        let speed = 1000/tick;
+        run(speed);
     });
+
 
     async function run (delay) {
         execution = true;
         toggleUIVisual(true);
         let start = gridObject.grid[starti][startj];
         let end = gridObject.grid[endi][endj];
-        let pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
+        let pathdel = null;
+        if (func == 'astar') {
+            pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
+        }
+        else {
+            pathdel = await djikstra(gridObject.grid, start, end, optimFunction, delay);
+        }
         let temp = document.getElementById('crsearch');
         temp.innerText = 'Searching';
         //console.log("happens after", pathdel);
@@ -658,7 +759,9 @@ function toggleUIVisual(disable) {
         'genrandom',
         'search',
         'energy',
-        'time'
+        'time',
+        'assel',
+        'djsel',
     ];
     elems.forEach(elemname => {
         let elem = document.getElementById(elemname);
@@ -695,4 +798,26 @@ optimisationOptions.forEach(name => {
         let cropt = document.getElementById('cropt');
         cropt.innerText = name;
     });
+});
+
+let algoListener = null;
+let algoWriter = document.getElementById('cralgo');
+algoListener = document.getElementById('assel');
+algoListener.addEventListener('click', e => {
+    func = 'astar';
+    algoWriter.innerText = 'A-Star';
+});
+
+algoListener = document.getElementById('djsel');
+algoListener.addEventListener('click', e => {
+    func = 'djikstra';
+    algoWriter.innerText = 'Djikstra';
+});
+
+let tickButListener = document.getElementById('tickbut');
+tickButListener.addEventListener('click', e => {
+    let tickListener = document.getElementById('tick');
+    tick = tickListener.value;
+    let tickWriter = document.getElementById('crtck');
+    tickWriter.innerText = tick;
 });
