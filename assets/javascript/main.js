@@ -437,9 +437,17 @@ let uphills = {
         [4, 3, 2, 1],
         [4, 3, 2, 1],
         [4, 3, 1, 0],
-        [3, 1, 1, 0]
+        [4, 1, 1, 0]
     ],
-    //halfunder: [],
+    halfFullLeft: [
+        [0, 1, 2, 4],
+        [0, 1, 3, 4],
+        [1, 2, 2, 4],
+        [1, 2, 3, 4],
+        [1, 2, 3, 4],
+        [0, 1, 3, 4],
+        [4, 1, 1, 4]
+    ],
 };
 
 function randomSurface(grid) {
@@ -519,6 +527,7 @@ window.addEventListener('load', () => {
         //console.log('mouseup! pressed = ', painting);
     });
 
+    // Adding EventListeners to the grid so painting/moving can be done
     for (let i = 0; i < 40; i++) {
         for (let j = 0; j < 50; j++) {
             let mouseTarget = document.getElementById(i+'-'+j);
@@ -584,6 +593,8 @@ window.addEventListener('load', () => {
             });
         }
     }
+
+    // Adding EventListeners to the UI Elements
     let tempElem = document.getElementById('resetsearch')
     tempElem.addEventListener('click', e => {
         if (execution)
@@ -614,6 +625,7 @@ window.addEventListener('load', () => {
 
     async function run (delay) {
         execution = true;
+        toggleUIVisual(true);
         let start = gridObject.grid[starti][startj];
         let end = gridObject.grid[endi][endj];
         let pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
@@ -627,6 +639,7 @@ window.addEventListener('load', () => {
         //setTimeout(()=>{console.log("complete")}, timedelay*delay);
         setTimeout(()=>{
             execution = false;
+            toggleUIVisual(false);
             if (!pathfound) {
                 temp.innerText = 'There was no viable path found';
             }
@@ -637,6 +650,25 @@ window.addEventListener('load', () => {
     }
 
 });
+
+function toggleUIVisual(disable) {
+    let elems = [
+        'resetsearch', 
+        'resetboard',
+        'genrandom',
+        'search',
+        'energy',
+        'time'
+    ];
+    elems.forEach(elemname => {
+        let elem = document.getElementById(elemname);
+        if (disable)
+            elem.classList.add('disabled');
+        else
+            elem.classList.remove('disabled');
+    });
+
+}
 
 for (let i = 1; i <= 16; i++) {
     let id = "level"+i;

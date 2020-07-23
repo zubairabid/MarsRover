@@ -133,7 +133,7 @@
 }
 
 .cell.visited {
-    border: 2px solid yellow;
+    border: 2px solid #c5c542;
     /**background-color: white;**/
 }
 
