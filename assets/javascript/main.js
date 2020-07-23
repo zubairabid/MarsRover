@@ -242,13 +242,14 @@ function paintCellPath(cell) {
 function paintPath(path) {
     if (path == null) {
         console.log("No path :(");
-        return;
+        return false;
     }
     for (let i = 0; i < path.length; i++) {
         let cell = path[i];
         let elem = uiFromCell(cell);
         elem.classList.add('path');
     }
+    return true;
 }
 
 ////////////////////////
@@ -590,6 +591,11 @@ window.addEventListener('load', () => {
 
     tempElem = document.getElementById('resetboard')
     tempElem.addEventListener('click', e => {
+        resetGrid(gridObject.grid);
+    });
+
+    tempElem = document.getElementById('genrandom')
+    tempElem.addEventListener('click', e => {
         randomSurface(gridObject.grid);
     });
 
@@ -603,8 +609,18 @@ window.addEventListener('load', () => {
         let start = gridObject.grid[starti][startj];
         let end = gridObject.grid[endi][endj];
         let pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
+        let temp = document.getElementById('crsearch');
+        temp.innerText = 'Searching';
         //console.log("happens after", pathdel);
-        setTimeout(()=>{paintPath(pathdel.path);}, pathdel.time*delay);
+        setTimeout(()=>{
+            let pathfound = paintPath(pathdel.path);
+            if (!pathfound) {
+                temp.innerText = 'There was no viable path found';
+            }
+            else {
+                temp.innerText = 'Optimal path found';
+            }
+        }, pathdel.time*delay);
         //setTimeout(()=>{console.log("complete")}, timedelay*delay);
         setTimeout(()=>{execution = false;}, pathdel.time*delay);
     }
