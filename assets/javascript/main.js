@@ -141,6 +141,19 @@ function resetSearch(grid) {
     }
 }
 
+function resetExplore(grid) {
+    let rows = grid.length, columns = grid[0].length;
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            let cell = grid[i][j];
+            cell.visited = false;
+            cell.mapped = false;
+
+            paintCell(cell);
+        }
+    }
+}
+
 function getNeighbours(grid, cell) {
     neighbours = [];
     let i = 0, j = 0;
@@ -839,6 +852,8 @@ let universalButtons = [
 let explorationButtons = [
     'explore',
     'basic',
+    'newterrain',
+    'resetexplore',
 ]
 
 let BASE_LEVEL = 8;
@@ -1169,6 +1184,8 @@ switchModeListener.addEventListener('click', e => {
 let exploreFunc = basic_move;
 
 let exploreListener = document.getElementById('explore');
+let resetexploreListener = document.getElementById('resetexplore');
+let newterrainListener = document.getElementById('newterrain');
 let basicListener = document.getElementById('basic');
 
 basicListener.addEventListener('click', e => {
@@ -1176,6 +1193,23 @@ basicListener.addEventListener('click', e => {
         return;
 
     exploreFunc = basic_move;
+});
+
+resetexploreListener.addEventListener('click', e => {
+    if (execution || !explorationMode) 
+        return;
+
+    resetExplore(gridObject.grid);
+    // command to remove visited and add unmapped to grid
+});
+
+newterrainListener.addEventListener('click', e => {
+    if (execution || !explorationMode)
+        return;
+
+    // reset command
+    resetExplore(gridObject.grid);
+    randomSurface(gridObject.grid);
 });
 
 exploreListener.addEventListener('click', e => {
