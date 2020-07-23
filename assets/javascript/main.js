@@ -596,7 +596,208 @@ function getRandomProperty(object) {
 
 
 
+//////////////////////////////
+//  Terrain Exploration.js  //
+//////////////////////////////
 
+
+function scan_top(cell, grid, limit, delay) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let row = cell.i-1; row >= cell.i-limit; row--) {
+        if (row < 0)
+            break;
+        for (let col = cell.j-(cell.i-row); col <= cell.j+(cell.i-row); col++) {
+            if (col < 0)
+                continue;
+            else if (col >= columns) 
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
+                }
+            }
+        }
+        minscan = new_minscan;
+    }
+}
+
+function scan_bot(cell, grid, limit, delay) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let row = cell.i+1; row <= cell.i+limit; row++) {
+        if (row >= rows)
+            break;
+        for (let col = cell.j-(row-cell.i); col <= cell.j+(row-cell.i); col++) {
+            if (col < 0)
+                continue;
+            else if (col >= columns) 
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
+                }
+            }
+        }
+        minscan = new_minscan;
+    }
+}
+
+function scan_rig(cell, grid, limit, delay) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let col = cell.j+1; col <= cell.j+limit; col++) {
+        if (col >= columns)
+            break;
+        for (let row = cell.i-(col-cell.j-1); row <= cell.i+(col-cell.j-1); row++) {
+            if (row < 0)
+                continue;
+            else if (row >= rows)
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
+                }
+            }
+        }
+        minscan = new_minscan;
+    }
+}
+
+function scan_lef(cell, grid, limit, delay) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let col = cell.j-1; col >= cell.j-limit; col--) {
+        if (col < 0)
+            break;
+        for (let row = cell.i-(cell.j-col-1); row <= cell.i+(cell.j-col-1); row++) {
+            if (row < 0)
+                continue;
+            else if (row >= rows)
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
+                }
+            }
+        }
+        minscan = new_minscan;
+    }
+}
+
+function basic_move(cell, grid, prevMove) {
+    let nextCell = null;
+    let rows = grid.length, columns = grid[0].length;
+    let move = prevMove;
+    
+    let counter = 0;
+    let ret = {
+        cell: null,
+        move: null,
+        counter: counter,
+    }
+    while (counter < 4) {
+        counter++;
+        //console.log(counter);
+        let di = 0, dj = 0;
+
+        if (move == 'u')
+            di = -1;
+        else if (move == 'd')
+            di = 1;
+        else if (move == 'r')
+            dj = 1;
+        else if (move == 'l')
+            dj = -1;
+
+        ret.move = move;
+        ret.counter = counter;
+
+        let row = cell.i + di;
+        let col = cell.j + dj;
+
+        if (row >= 0 && row < rows && col >= 0 && col < columns) {
+            nextCell = grid[row][col];
+            //console.log("Next cell? ", nextCell);
+            if (!nextCell.visited) {
+                ret.cell = nextCell;
+                return ret;
+            }
+        }
+
+        if (move == 'u')
+            move = 'r';
+        else if (move == 'r')
+            move = 'd';
+        else if (move == 'd')
+            move = 'l';
+        else if (move == 'l')
+            move = 'u'
+    }
+
+    ret.counter = 4;
+    return ret;
+}
+
+function tempF(cell, delay) {
+    setTimeout(()=>{paintCell(cell);}, delay);
+}
+
+function explore(grid, start, moveFunction, delay) {
+
+    let limit = 10;
+    let cell = start;
+    let move = 'u';
+    let obj = null
+
+    let time = 0;
+    while (true) {
+        time += delay;
+        //console.log("at ", cell.i, cell.j);
+        cell.visited = true;
+        cell.mapped = true;
+        //setTimeout((cell)=>{console.log('painting og');paintCell(cell);}, time)
+        tempF(cell, time);
+
+        // scan
+        time += delay;
+        scan_top(cell, grid, limit, time);
+        time += delay;
+        scan_bot(cell, grid, limit, time);
+        time += delay;
+        scan_rig(cell, grid, limit, time);
+        time += delay;
+        scan_lef(cell, grid, limit, time);
+
+        // move
+        obj = moveFunction(cell, grid, move);
+        move = obj.move;
+        //console.log(obj);
+        if (obj.counter >= 4)
+            break;
+        cell = obj.cell;
+    }
+}
 
 
 
@@ -636,6 +837,8 @@ let universalButtons = [
 ]
 
 let explorationButtons = [
+    'explore',
+    'basic',
 ]
 
 let BASE_LEVEL = 8;
@@ -671,7 +874,7 @@ endj = 44;
 gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL, true);
 randomSurface(gridObject.grid);
 
-
+toggleUIVisual(false, explorationButtons);
 
 
 ///////////////////////////////////
@@ -934,6 +1137,10 @@ switchModeListener.addEventListener('click', e => {
         toggleUIVisual(true, traditionalButtons);
         toggleUIVisual(false, explorationButtons);
 
+        // Reset start/end
+        gridObject.grid[starti][startj].start = true;
+        gridObject.grid[endi][endj].end = true;
+
         // reset the grid and unhide it
         // resetSearch(gridObject.grid);
         randomSurface(gridObject.grid);
@@ -946,6 +1153,13 @@ switchModeListener.addEventListener('click', e => {
         toggleUIVisual(false, traditionalButtons);
         toggleUIVisual(true, explorationButtons);
 
+        // Remove end, and set start to top left
+        gridObject.grid[starti][startj].start = false;
+        starti = 0;
+        startj = 0;
+        gridObject.grid[starti][startj].start = true;
+        gridObject.grid[endi][endj].end = false;
+
         // reset any existing searches, change the grid, and hide it
         resetSearch(gridObject.grid);
         randomSurface(gridObject.grid);
@@ -953,211 +1167,40 @@ switchModeListener.addEventListener('click', e => {
     }
 });
 
+//////////////////////////////////////
+//  EventListeners for exploration  //
+//////////////////////////////////////
 
-function scan_top(cell, grid, limit, delay) {
-    let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
-    for (let row = cell.i-1; row >= cell.i-limit; row--) {
-        if (row < 0)
-            break;
-        for (let col = cell.j-(cell.i-row); col <= cell.j+(cell.i-row); col++) {
-            if (col < 0)
-                continue;
-            else if (col >= columns) 
-                break;
+let exploreFunc = basic_move;
 
-            let tempCell = grid[row][col];
-            if (tempCell.level > new_minscan)
-                new_minscan = tempCell.level;
-            if (!tempCell.mapped) {
-                if (tempCell.level >= minscan) {
-                    tempCell.mapped = true;
-                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
-                }
-            }
-        }
-        minscan = new_minscan;
-    }
-}
+let exploreListener = document.getElementById('explore');
+let basicListener = document.getElementById('basic');
 
-function scan_bot(cell, grid, limit, delay) {
-    let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
-    for (let row = cell.i+1; row <= cell.i+limit; row++) {
-        if (row >= rows)
-            break;
-        for (let col = cell.j-(row-cell.i); col <= cell.j+(row-cell.i); col++) {
-            if (col < 0)
-                continue;
-            else if (col >= columns) 
-                break;
+basicListener.addEventListener('click', e => {
+    if (execution || !explorationMode) 
+        return;
 
-            let tempCell = grid[row][col];
-            if (tempCell.level > new_minscan)
-                new_minscan = tempCell.level;
-            if (!tempCell.mapped) {
-                if (tempCell.level >= minscan) {
-                    tempCell.mapped = true;
-                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
-                }
-            }
-        }
-        minscan = new_minscan;
-    }
-}
+    exploreFunc = basic_move;
+});
 
-function scan_rig(cell, grid, limit, delay) {
-    let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
-    for (let col = cell.j+1; col <= cell.j+limit; col++) {
-        if (col >= columns)
-            break;
-        for (let row = cell.i-(col-cell.j-1); row <= cell.i+(col-cell.j-1); row++) {
-            if (row < 0)
-                continue;
-            else if (row >= rows)
-                break;
-
-            let tempCell = grid[row][col];
-            if (tempCell.level > new_minscan)
-                new_minscan = tempCell.level;
-            if (!tempCell.mapped) {
-                if (tempCell.level >= minscan) {
-                    tempCell.mapped = true;
-                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
-                }
-            }
-        }
-        minscan = new_minscan;
-    }
-}
-
-function scan_lef(cell, grid, limit, delay) {
-    let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
-    for (let col = cell.j-1; col >= cell.j-limit; col--) {
-        if (col < 0)
-            break;
-        for (let row = cell.i-(cell.j-col-1); row <= cell.i+(cell.j-col-1); row++) {
-            if (row < 0)
-                continue;
-            else if (row >= rows)
-                break;
-
-            let tempCell = grid[row][col];
-            if (tempCell.level > new_minscan)
-                new_minscan = tempCell.level;
-            if (!tempCell.mapped) {
-                if (tempCell.level >= minscan) {
-                    tempCell.mapped = true;
-                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
-                }
-            }
-        }
-        minscan = new_minscan;
-    }
-}
-
-function basic_move(cell, grid, prevMove) {
-    let nextCell = null;
-    let rows = grid.length, columns = grid[0].length;
-    let move = prevMove;
+exploreListener.addEventListener('click', e => {
+    if (execution || !explorationMode)
+        return;
     
-    let counter = 0;
-    let ret = {
-        cell: null,
-        move: null,
-        counter: counter,
-    }
-    while (counter < 4) {
-        counter++;
-        //console.log(counter);
-        let di = 0, dj = 0;
-
-        if (move == 'u')
-            di = -1;
-        else if (move == 'd')
-            di = 1;
-        else if (move == 'r')
-            dj = 1;
-        else if (move == 'l')
-            dj = -1;
-
-        ret.move = move;
-        ret.counter = counter;
-
-        let row = cell.i + di;
-        let col = cell.j + dj;
-
-        if (row >= 0 && row < rows && col >= 0 && col < columns) {
-            nextCell = grid[row][col];
-            //console.log("Next cell? ", nextCell);
-            if (!nextCell.visited) {
-                ret.cell = nextCell;
-                return ret;
-            }
-        }
-
-        if (move == 'u')
-            move = 'r';
-        else if (move == 'r')
-            move = 'd';
-        else if (move == 'd')
-            move = 'l';
-        else if (move == 'l')
-            move = 'u'
-    }
-
-    ret.counter = 4;
-    return ret;
-}
-
-function tempF(cell, delay) {
-    setTimeout(()=>{paintCell(cell);}, delay);
-}
-
-function explore(grid, start, moveFunction, delay) {
-
-    let limit = 10;
-    let cell = start;
-    let move = 'u';
-    let countcheck = null;
-    let obj = null
-
-    let time = 0;
-    while (true) {
-        time += delay;
-        //console.log("at ", cell.i, cell.j);
-        cell.visited = true;
-        cell.mapped = true;
-        //setTimeout((cell)=>{console.log('painting og');paintCell(cell);}, time)
-        tempF(cell, time);
-
-        // scan
-        time += delay;
-        scan_top(cell, grid, limit, time);
-        time += delay;
-        scan_bot(cell, grid, limit, time);
-        time += delay;
-        scan_rig(cell, grid, limit, time);
-        time += delay;
-        scan_lef(cell, grid, limit, time);
-
-        // move
-        obj = moveFunction(cell, grid, move);
-        move = obj.move;
-        //console.log(obj);
-        if (obj.counter >= 4)
-            break;
-        cell = obj.cell;
-    }
-}
-
+    let delay = 200/tick;
+    runExplore(delay);
+});
 
 
 /////////////////////////
 //  Main.js functions  //
 /////////////////////////
+
+async function runExplore(delay) {
+    let start = gridObject.grid[starti][startj];
+
+    explore(gridObject.grid, start, exploreFunc, delay);
+}
 
 async function run (delay) {
     // Set the execution flag so UI elements can grey out
