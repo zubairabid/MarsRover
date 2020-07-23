@@ -601,6 +601,12 @@ function getRandomProperty(object) {
 
 
 
+
+
+
+
+
+
 ///////////////
 //  main.js  //
 ///////////////
@@ -621,6 +627,9 @@ let traditionalButtons = [
     'assel',
     'djsel',
 ];
+for (let i = 1; i <= 16; i++) {
+    traditionalButtons.push('level'+i);
+}
 
 let universalButtons = [
     'tickbut',
@@ -661,6 +670,9 @@ endj = 44;
 // Creating the grid
 gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL, true);
 randomSurface(gridObject.grid);
+
+
+
 
 ///////////////////////////////////
 //  eventListeners for the grid  //
@@ -765,6 +777,9 @@ for (let i = 0; i < 40; i++) {
         });
     }
 }
+
+
+
 
 
 //////////////////////////////////////////////////
@@ -906,6 +921,27 @@ tempElem.addEventListener('click', e => {
     let delay = 1000/tick;
     run(delay);
 });
+
+
+// EventListeners to switch modes and, disable/enable UIs
+let switchModeListener = document.getElementById('switchmodes');
+
+switchModeListener.addEventListener('click', e => {
+    if (explorationMode) {
+        explorationMode = false;
+        toggleUIVisual(false, traditionalButtons);
+        toggleUIVisual(true, explorationButtons);
+    }
+    else {
+        explorationMode = true;
+        toggleUIVisual(true, traditionalButtons);
+        toggleUIVisual(false, explorationButtons);
+    }
+});
+
+
+
+
 
 /////////////////////////
 //  Main.js functions  //
