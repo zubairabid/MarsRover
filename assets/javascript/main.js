@@ -586,21 +586,29 @@ window.addEventListener('load', () => {
     }
     let tempElem = document.getElementById('resetsearch')
     tempElem.addEventListener('click', e => {
+        if (execution)
+            return;
         resetSearch(gridObject.grid);
     });
 
     tempElem = document.getElementById('resetboard')
     tempElem.addEventListener('click', e => {
+        if (execution)
+            return;
         resetGrid(gridObject.grid);
     });
 
     tempElem = document.getElementById('genrandom')
     tempElem.addEventListener('click', e => {
+        if (execution)
+            return;
         randomSurface(gridObject.grid);
     });
 
     tempElem = document.getElementById('search');
     tempElem.addEventListener('click', e => {
+        if (execution)
+            return;
         run(10);
     });
 
@@ -612,8 +620,13 @@ window.addEventListener('load', () => {
         let temp = document.getElementById('crsearch');
         temp.innerText = 'Searching';
         //console.log("happens after", pathdel);
+        let pathfound = false;
         setTimeout(()=>{
-            let pathfound = paintPath(pathdel.path);
+            pathfound = paintPath(pathdel.path);
+        }, pathdel.time*delay);
+        //setTimeout(()=>{console.log("complete")}, timedelay*delay);
+        setTimeout(()=>{
+            execution = false;
             if (!pathfound) {
                 temp.innerText = 'There was no viable path found';
             }
@@ -621,8 +634,6 @@ window.addEventListener('load', () => {
                 temp.innerText = 'Optimal path found';
             }
         }, pathdel.time*delay);
-        //setTimeout(()=>{console.log("complete")}, timedelay*delay);
-        setTimeout(()=>{execution = false;}, pathdel.time*delay);
     }
 
 });

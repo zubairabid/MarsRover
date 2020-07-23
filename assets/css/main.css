@@ -138,21 +138,21 @@
 }
 
 .cell.closed {
-    border: 2px solid black;
+    border: 2px solid #8ba29b;
     /**background-color: black;**/
 }
 
 .cell.path {
     /**background-color: mediumvioletred;**/
-    border: 4px solid orange;
+    border: 2px solid black;
 }
 
 .cell.start {
-    border: 3px solid #44fb8b;
+    border: 2px solid #44fb8b;
 }
 
 .cell.end {
-    border: 3px solid #ff00e3;
+    border: 2px solid #00ffff;
 }
 
 .gridrow {
