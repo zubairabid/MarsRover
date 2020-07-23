@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-
+{% include tutorial.html %}
 <div class="container-fluid fullscreen">
     <div class="row h-100">
         <div class="col-md-12 col-lg-9">
@@ -19,6 +19,10 @@ layout: default
             <hr>
             {% include exploSelect.html %}
             {% include exploOperations.html %}
+            <hr>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#tutorial">
+                Launch tutorial
+            </button>
         </div>
     </div>
 </div>
