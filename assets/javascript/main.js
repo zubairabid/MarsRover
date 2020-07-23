@@ -611,7 +611,7 @@ function getRandomProperty(object) {
 // the webpage itself) of nodes. Nodes have position, and level. The default
 // level is 8. Colour-coding of the levels will be defined in the CSS, and 
 // representation in HTML is as classes.
-let traditonalButtons = [
+let traditionalButtons = [
     'resetsearch', 
     'resetboard',
     'genrandom',
@@ -631,28 +631,26 @@ let explorationButtons = [
 
 let BASE_LEVEL = 8;
 let rows = 0, columns = 0;
-let explorationMode = false;
+let starti = 0, startj = 0, endi = 0, endj = 0;
+
 let gridObject = null;
 
-// Variables that help define actions when the mouse moves over the nodes in
-// the grid
-let level = 14;
+// Flag variables to track activity
 let painting = false;
 let moveStart = false;
 let moveEnd = false;
 let execution = false;
-let func = 'astar';
 
+// Configuration variables
+let level = 14;
+let explorationMode = false;
 let tick = 100;
 
-let starti = 0, startj = 0, endi = 0, endj = 0;
+// Counting number of rows and columns
+let rowsandcolumns = document.getElementsByClassName('gridrow')[0].classList;
+rows = parseInt(rowsandcolumns[2]);
+columns = parseInt(rowsandcolumns[3]);
 
-let grid = document.getElementsByClassName('gridrow')[0];
-let classes = grid.classList;
-
-// Get the number of rows
-rows = parseInt(classes[2]);
-columns = parseInt(classes[3]);
 
 // hardcoded for quick prototyping, refactor
 starti = 34;
@@ -660,51 +658,70 @@ startj = 4;
 endi = 4;
 endj = 44;
 
-//console.log("initing grid");
+// Creating the grid
 gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL, true);
 randomSurface(gridObject.grid);
 
-// Event listeners for all nodes. When the cell style is updated, so is
-// the node in the JavaScript representation
+///////////////////////////////////
+//  eventListeners for the grid  //
+///////////////////////////////////
+
+// If the mouse goes up, nothing can be set.
 window.addEventListener('mouseup', e => {
     painting = false;
     moveStart = false;
     moveEnd = false;
-    //console.log('mouseup! pressed = ', painting);
 });
 
 // Adding EventListeners to the grid so painting/moving can be done
+//
+// For each cell in the grid...
 for (let i = 0; i < 40; i++) {
     for (let j = 0; j < 50; j++) {
         let mouseTarget = document.getElementById(i+'-'+j);
         let cell = cellFromUI(mouseTarget, gridObject.grid);
 
+
+        // If the person presses down, it could be for either painting or 
+        // moving the start/end. Set the flags up accordingly
         mouseTarget.addEventListener('mousedown', e => {
-            if (execution)
+            // disable if executing or in explorationMode
+            if (execution || explorationMode)
                 return;
-            if (i == starti && j == startj) {
+
+            if (cell.start) {
                 moveStart = true;
             }
-            else if (i == endi && j == endj) {
+            else if (cell.end) {
                 moveEnd = true;
             }
             else {
+                // otherwise, we're trying to paint something.
                 painting = true;
-                //console.log('mousedown! pressed = ', painting);
             }
         });
 
+
+        // If the person clicks, it's only to paint. Set the flags accordingly
         mouseTarget.addEventListener('click', e => {
-            if (execution)
+            // disable if executing or in explorationMode
+            if (execution || explorationMode)
                 return;
-            let cell = cellFromUI(mouseTarget, gridObject.grid);
+
             setLevel(cell, level);
             paintCell(cell);
         })
 
+
+        // If the mouse leaves a cell, it will operate like:
+        //      - If the initial mousedown was on start/end, remove that prop 
+        //      from this cell.
+        //      - Else, set the level of the cell
         mouseTarget.addEventListener('mouseleave', e => {
-            if (execution)
+            // disable if executing or in explorationMode
+            if (execution || explorationMode)
                 return;
+
             if (moveStart) {
                 cell.start = false;
                 paintCell(cell);
@@ -713,11 +730,22 @@ for (let i = 0; i < 40; i++) {
                 cell.end = false;
                 paintCell(cell);
             }
+            else if (painting) {
+                setLevel(cell, level);
+                paintCell;
+            }
         });
 
+
+        // If the mouse enters a cell, it will operate like:
+        //      - If the initial mousedown was on start/end, move that to this
+        //      cell
+        //      - Else, paint this cell
         mouseTarget.addEventListener('mouseenter', e => {
-            if (execution)
+            // disable if executing or in explorationMode
+            if (execution || explorationMode)
                 return;
+
             if (moveStart) {
                 starti = i;
                 startj = j;
@@ -731,8 +759,6 @@ for (let i = 0; i < 40; i++) {
                 paintCell(cell);
             }
             else if (painting) {
-                //console.log("Mouse entered ", mouseTarget.id, 'while clicked');
-                let cell = cellFromUI(mouseTarget, gridObject.grid);
                 setLevel(cell, level);
                 paintCell(cell);
             }
@@ -740,67 +766,211 @@ for (let i = 0; i < 40; i++) {
     }
 }
 
-// Adding EventListeners to the UI Elements
-let tempElem = document.getElementById('resetsearch')
-tempElem.addEventListener('click', e => {
+
+//////////////////////////////////////////////////
+//  eventListeners for the Traditional Buttons  //
+//////////////////////////////////////////////////
+
+let optimOptions = ['energy', 'time']
+let algoOptions = ['assel', 'djsel']
+
+// Function pointers
+// this variable points to the currently active optimiser function
+let optimFunction = energyCost
+// this variable contains the name of the currently active algorithm function
+let algoFunction = 'astar';
+
+let currentLevelElem = null;
+let currentOptimElem = document.getElementById('cropt');
+let currentAlgoElem = document.getElementById('cralgo');
+let currentTickElem = document.getElementById('crtck');
+let searchStatusElem = document.getElementById('crsearch');
+
+let tickValueListener = document.getElementById('tick');
+let tickButListener = document.getElementById('tickbut');
+
+
+// If any of the "level" buttons are selected, set the level flag = the 
+// level of the button clicked
+for (let i = 1; i <= 16; i++) {
+    let levelElemID = "level"+i;
+    let levelElemListener = document.getElementById(levelElemID);
+
+    levelElemListener.addEventListener('click', e => {
+        // disable if executing or in explorationMode
+        if (execution || explorationMode)
+            return;
+
+        // This is the global "level" flag
+        level = i;
+
+        // Display the level on the page
+        currentLevelElem = document.getElementById('crlvl');
+        currentLevelElem.innerText = level;
+    });
+}
+
+// Event Listeners to deal with selection of the energy/time optimisers
+optimOptions.forEach(name => {
+    let optimListener = document.getElementById(name);
+
+    optimListener.addEventListener('click', e => {
+        // disable if executing or in explorationMode
+        if (execution || explorationMode)
+            return;
+
+        // change the global pointer to the optimiser according to the 
+        // currently executing listener
+        if (name == 'energy')
+            optimFunction = energyCost;
+        else if (name == 'time')
+            optimFunction = timeCost;
+
+        // Display the current optimiser on the page
+        currentOptimElem.innerText = name;
+    });
+});
+
+// Event Listeners to deal with the selection of the astar/djikstra algos
+algoOptions.forEach(name => {
+    let algoListener = document.getElementById(name);
+
+    algoListener.addEventListener('click', e=> {
+        // disable if executing or in explorationMode
+        if (execution || explorationMode)
+            return;
+
+        // Change the global function name-pointer to the correct algorithm
+        // name based on the currently executing listener
+        if (name == 'assel') 
+            algoFunction = 'astar';
+        else if (name == 'djsel')
+            algoFunction = 'djikstra';
+
+        currentAlgoElem.innerText = algoFunction;
+    });
+});
+
+// Listener so that when the "set tick speed" button is clicked, the 
+// global tick variable will be updated from value
+tickButListener.addEventListener('click', e => {
+    // Stop the page from refreshing as it's a button press on a form
+    e.preventDefault();
+    // disable if executing 
     if (execution)
         return;
+
+    tick = tickValueListener.value;
+    currentTickElem.innerText = tick;
+});
+
+// If "reset search" is clicked, remove search indicators: closed, visited, path
+let resetSearchElem = document.getElementById('resetsearch');
+resetSearchElem.addEventListener('click', e => {
+    // disable if executing or in explorationMode
+    if (execution || explorationMode)
+        return;
+
     resetSearch(gridObject.grid);
 });
 
-tempElem = document.getElementById('resetboard')
-tempElem.addEventListener('click', e => {
-    if (execution)
+// If "reset board" is clicked, reset the grid to all cells @ level 8
+resetGridElem = document.getElementById('resetboard')
+resetGridElem.addEventListener('click', e => {
+    // disable if executing or in explorationMode
+    if (execution || explorationMode)
         return;
+
     resetGrid(gridObject.grid);
 });
 
-tempElem = document.getElementById('genrandom')
-tempElem.addEventListener('click', e => {
-    if (execution)
+// If "generate random terrain" is clicked, apply random distortions to the
+// surface of the grid
+randomSurfaceElem = document.getElementById('genrandom')
+randomSurfaceElem.addEventListener('click', e => {
+    // disable if executing or in explorationMode
+    if (execution || explorationMode)
         return;
+
     randomSurface(gridObject.grid);
 });
 
+// If the "search" button is clicked, calculate the delay from tick speed
+// and search for the optimal path with config flags set
 tempElem = document.getElementById('search');
 tempElem.addEventListener('click', e => {
-    if (execution)
+    // disable if executing or in explorationMode
+    if (execution || explorationMode)
         return;
-    let speed = 1000/tick;
-    run(speed);
+
+    let delay = 1000/tick;
+    run(delay);
 });
 
+/////////////////////////
+//  Main.js functions  //
+/////////////////////////
 
 async function run (delay) {
+    // Set the execution flag so UI elements can grey out
     execution = true;
-    toggleUIVisual(true, traditonalButtons);
+
+    // Visually disable the traditional exec + universal buttons.
+    toggleUIVisual(true, traditionalButtons);
     toggleUIVisual(true, universalButtons);
+
+    // Get the cell representations of the start and end cells
     let start = gridObject.grid[starti][startj];
     let end = gridObject.grid[endi][endj];
+
+    // pathdel will get the return value of the search. It contains the 
+    // path and the delay
     let pathdel = null;
-    if (func == 'astar') {
-        pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
+    // Calling the function also paints the cell search operation, but not the
+    // final path
+    if (algoFunction == 'astar') {
+        pathdel = await astar(
+            gridObject.grid,
+            start,
+            end,
+            optimFunction,
+            manhattanDist,
+            delay
+        );
     }
     else {
-        pathdel = await djikstra(gridObject.grid, start, end, optimFunction, delay);
+        pathdel = await djikstra(
+            gridObject.grid,
+            start,
+            end,
+            optimFunction,
+            delay
+        );
     }
-    let temp = document.getElementById('crsearch');
-    temp.innerText = 'Searching';
-    //console.log("happens after", pathdel);
+
+    // Give a visual update on the search status
+    searchStatusElem.innerText = 'Searching';
+
+    // Paint the final path, if it exists. 
     let pathfound = false;
     setTimeout(()=>{
         pathfound = paintPath(pathdel.path);
     }, pathdel.time*delay);
-    //setTimeout(()=>{console.log("complete")}, timedelay*delay);
+
+    // Whether you find it or not, update the search status accordingly
+    // Also unset the global execution flag and visually re-enable the 
+    // traditional and universal buttons
     setTimeout(()=>{
         execution = false;
-        toggleUIVisual(false, traditonalButtons);
+
+        toggleUIVisual(false, traditionalButtons);
         toggleUIVisual(false, universalButtons);
+
         if (!pathfound) {
-            temp.innerText = 'There was no viable path found';
+            searchStatusElem.innerText = 'There was no viable path found';
         }
         else {
-            temp.innerText = 'Optimal path found';
+            searchStatusElem.innerText = 'Optimal path found';
         }
     }, pathdel.time*delay);
 }
@@ -814,55 +984,4 @@ function toggleUIVisual(disable, elems) {
         else
             elem.classList.remove('disabled');
     });
-
 }
-
-for (let i = 1; i <= 16; i++) {
-    let id = "level"+i;
-    let elem = document.getElementById(id);
-
-    elem.addEventListener('click', e => {
-        level = i;
-        let resetCounter = document.getElementById('crlvl');
-        resetCounter.innerText = level;
-    });
-}
-
-let optimFunction = energyCost
-
-let optimisationOptions = ['energy', 'time']
-optimisationOptions.forEach(name => {
-    let optElem = document.getElementById(name);
-    optElem.addEventListener('click', e => {
-        if (name == 'energy')
-            optimFunction = energyCost;
-        else if (name == 'time')
-            optimFunction = timeCost;
-
-        let cropt = document.getElementById('cropt');
-        cropt.innerText = name;
-    });
-});
-
-let algoListener = null;
-let algoWriter = document.getElementById('cralgo');
-algoListener = document.getElementById('assel');
-algoListener.addEventListener('click', e => {
-    func = 'astar';
-    algoWriter.innerText = 'A-Star';
-});
-
-algoListener = document.getElementById('djsel');
-algoListener.addEventListener('click', e => {
-    func = 'djikstra';
-    algoWriter.innerText = 'Djikstra';
-});
-
-let tickButListener = document.getElementById('tickbut');
-tickButListener.addEventListener('click', e => {
-    e.preventDefault();
-    let tickListener = document.getElementById('tick');
-    tick = tickListener.value;
-    let tickWriter = document.getElementById('crtck');
-    tickWriter.innerText = tick;
-});
