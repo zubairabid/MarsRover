@@ -931,7 +931,6 @@ for (let i = 0; i < 40; i++) {
         // If the mouse leaves a cell, it will operate like:
         //      - If the initial mousedown was on start/end, remove that prop 
         //      from this cell.
-        //      - Else, set the level of the cell
         mouseTarget.addEventListener('mouseleave', e => {
             // disable if executing or in explorationMode
             if (execution || explorationMode)
@@ -944,10 +943,6 @@ for (let i = 0; i < 40; i++) {
             else if (moveEnd) {
                 cell.end = false;
                 paintCell(cell);
-            }
-            else if (painting) {
-                setLevel(cell, level);
-                paintCell;
             }
         });
 
