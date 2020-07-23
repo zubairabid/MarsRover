@@ -9,7 +9,7 @@
 }
 
 .cell {
-    width: 2%;
+    width: 2.5vh;
     background-color: rgb(240, 240, 240);
     border: 2px solid white;
 }

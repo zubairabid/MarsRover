@@ -27,6 +27,24 @@ function compareCells(a, b) {
     return 0;
 }
 
+function cellApply(cell, distortionCell) {
+    let currentLevel = cell.level;
+    
+    if (currentLevel > 8 && distortionCell < 0)
+        return;
+    if (currentLevel < 8 && distortionCell > 0)
+        return;
+
+
+    let newLevel = currentLevel + distortionCell;
+
+    //console.log("old, new, distortion: ", currentLevel, newLevel, distortionCell);
+    newLevel = newLevel > 16? 16: newLevel;
+    newLevel = newLevel < 1? 1 : newLevel;
+    //console.log("level: ", newLevel);
+    cell.level = newLevel;
+}
+
 //////////////////////////
 //  functional/grid.js  //
 //////////////////////////
@@ -49,6 +67,48 @@ class Grid {
                 rowgrid.push(cell);
             }
             this.grid.push(rowgrid);
+        }
+    }
+}
+
+function gridApply(grid, i, j, distortion) {
+    let rows = grid.length, columns = grid[0].length;
+
+    let gridi = i;
+    let gridj = j;
+
+    for (i = 0; i < distortion.length; i++) {
+        if (gridi >= rows)
+            break;
+        for (j = 0; j < distortion[0].length; j++) {
+            if (gridj >= columns)
+                break;
+
+            let cell = grid[gridi][gridj];
+            let distortionCell = distortion[i][j];
+            
+            if (Math.random() < 0.5)
+                distortionCell = -1 * distortionCell;
+
+            cellApply(cell, distortionCell);
+            paintCell(cell);
+
+            //console.log("distorting ", gridi, gridj, " by ", distortionCell);
+            gridj += 1;
+        }
+        gridj -= (j);
+        gridi += 1;
+    }
+}
+
+function resetGrid(grid) {
+    resetSearch(grid);
+    let rows = grid.length, columns = grid[0].length;
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            let cell = grid[i][j];
+            cell.level = 8;
+            paintCell(cell);
         }
     }
 }
@@ -199,7 +259,7 @@ function paintPath(path) {
 //  algorithms/pathHelpers.js  //
 /////////////////////////////////
 
-const INF = 1000
+const INF = 10000000
 
 function getCost(currentCell, neighbour, costFunction) {
     cost = costFunction(currentCell, neighbour);
@@ -209,13 +269,13 @@ function getCost(currentCell, neighbour, costFunction) {
 function timeCost(currentCell, neighbour) {
     let diff = currentCell.level - neighbour.level;
 
-    let cost = 10;
+    let cost = 100;
     if (diff > 0) {
-        cost = cost + diff;
+        cost = cost + 10*diff;
     }
     else if (diff < 0) {
         diff = -1*diff;
-        cost = cost - 2*diff;
+        cost = cost - Math.pow(diff, 2);
     }
     if (diff > 4)
         cost = INF;
@@ -238,13 +298,13 @@ function energyCost(currentCell, neighbour) {
     if (diff > 4)
         cost = INF;
 
-    return cost;
+    return cost*100;
 }
 
 function manhattanDist(cell, end) {
     let d1 = Math.abs(cell.i - end.i);
     let d2 = Math.abs(cell.j - end.j);
-    return d1+d2;
+    return 100*(d1+d2);
 }
 
 ///////////////////////////
@@ -336,6 +396,75 @@ function astar(grid, start, end, costFunction, heuristicFunction, delay) {
         resolve([]);
     });
 }
+
+//////////////////////////
+//  Terrain generation  //
+//////////////////////////
+let uphills = {
+    fullSmall: [
+        [0, 1, 2, 1, 0],
+        [1, 2, 3, 2, 0],
+        [1, 3, 4, 2, 1],
+        [1, 2, 3, 3, 1],
+        [0, 2, 1, 0, 0]
+    ],
+    full: [
+        [1, 0, 1, 1, 0, 0, 0],
+        [0, 1, 1, 2, 1, 1, 1],
+        [0, 1, 2, 3, 2, 1, 1],
+        [0, 2, 3, 4, 3, 2, 1],
+        [1, 1, 2, 3, 2, 1, 0],
+        [1, 0, 1, 2, 1, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0]
+    ],
+    halfFullTop: [
+        [0, 0, 1, 1, 0, 1, 0],
+        [0, 1, 2, 2, 2, 1, 1],
+        [2, 3, 2, 3, 3, 3, 2],
+        [4, 4, 4, 4, 4, 4, 4]
+    ],
+    halfFullBottom: [
+        [4, 4, 4, 4, 4, 4, 4],
+        [2, 3, 2, 3, 3, 3, 2],
+        [1, 1, 2, 2, 1, 1, 0],
+        [0, 0, 1, 1, 0, 0, 0]
+    ],
+    halfFullRight: [
+        [4, 2, 1, 0],
+        [4, 3, 1, 0],
+        [4, 2, 2, 1],
+        [4, 3, 2, 1],
+        [4, 3, 2, 1],
+        [4, 3, 1, 0],
+        [3, 1, 1, 0]
+    ],
+    //halfunder: [],
+};
+
+function randomSurface(grid) {
+    resetGrid(grid);
+    let rows = grid.length, columns = grid[0].length;
+
+    for (let counter = 0; counter < 100; counter++) {
+        let i = getRandomNumber(rows);
+        let j = getRandomNumber(columns);
+
+        let distortion = getRandomProperty(uphills);
+        gridApply(grid, i, j, distortion);
+    }
+}
+
+function getRandomNumber(uppercap) {
+    return Math.floor(Math.random() * uppercap);
+}
+
+// Function to get a random property of the object
+// Source: https://stackoverflow.com/a/15106541
+function getRandomProperty(object) {
+    let keys = Object.keys(object);
+    return object[keys[ keys.length * Math.random() << 0 ]];
+}
+
 
 ///////////////
 //  main.js  //
@@ -457,6 +586,11 @@ window.addEventListener('load', () => {
     let tempElem = document.getElementById('resetsearch')
     tempElem.addEventListener('click', e => {
         resetSearch(gridObject.grid);
+    });
+
+    tempElem = document.getElementById('resetboard')
+    tempElem.addEventListener('click', e => {
+        randomSurface(gridObject.grid);
     });
 
     tempElem = document.getElementById('search');
