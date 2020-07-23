@@ -3,7 +3,7 @@
 //////////////////////////
 
 class Cell {
-    constructor(i, j, start, end, level) {
+    constructor(i, j, start, end, level, mapped) {
         this.i = i;
         this.j = j;
         this.level = level;
@@ -14,6 +14,7 @@ class Cell {
         this.closed = false;
         this.parent = null;
         this.path = false;
+        this.mapped = mapped;
 
         this.distance = 0;
         this.heuristic = 0;
@@ -51,18 +52,18 @@ function compareCells(a, b) {
 
 // functional/grid.js
 class Grid {
-    constructor(rows, columns, starti, startj, endi, endj, level) {
+    constructor(rows, columns, starti, startj, endi, endj, level, mapped) {
         this.rows = rows;
         this.columns = columns;
         this.grid = [];
-        this.createGrid(starti, startj, endi, endj, level);
+        this.createGrid(starti, startj, endi, endj, level, mapped);
     }
 
-    createGrid(starti, startj, endi, endj, level) {
+    createGrid(starti, startj, endi, endj, level, mapped) {
         for (let i = 0; i < this.rows; i++) {
             let rowgrid = [];
             for (let j = 0; j < this.columns; j++) {
-                let cell = new Cell(i, j, (i==starti && j==startj), (i==endi && j==endj), level);
+                let cell = new Cell(i, j, (i==starti && j==startj), (i==endi && j==endj), level, mapped);
                 paintCell(cell);
                 rowgrid.push(cell);
             }
@@ -193,6 +194,15 @@ function paintCell(cell) {
     paintCellEnd(cell);
     paintCellLevel(cell);
     paintCellState(cell);
+    paintCellMapped(cell);
+}
+
+function paintCellMapped(cell) {
+    let elem = uiFromCell(cell);
+    if (cell.mapped)
+        elem.classList.remove('unmapped');
+    else
+        elem.classList.add('unmapped');
 }
 
 function paintCellStart(cell) {
@@ -240,7 +250,7 @@ function paintCellPath(cell) {
 
 // Paints out the final path
 function paintPath(path) {
-    if (path == null) {
+    if (path.length == 0) {
         console.log("No path :(");
         return false;
     }
@@ -484,7 +494,12 @@ function astar(grid, start, end, costFunction, heuristicFunction, delay) {
         }
 
         //return [], counter;
-        resolve([]);
+        let temp = {
+            path: [],
+            time: counter
+        }
+        resolve(temp);
+        return;
     });
 }
 
@@ -609,7 +624,7 @@ window.addEventListener('load', () => {
     endj = 44;
 
     //console.log("initing grid");
-    gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL);
+    gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL, true);
 
     // Event listeners for all nodes. When the cell style is updated, so is
     // the node in the JavaScript representation
