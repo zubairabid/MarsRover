@@ -831,6 +831,7 @@ algoListener.addEventListener('click', e => {
 
 let tickButListener = document.getElementById('tickbut');
 tickButListener.addEventListener('click', e => {
+    e.preventDefault();
     let tickListener = document.getElementById('tick');
     tick = tickListener.value;
     let tickWriter = document.getElementById('crtck');
