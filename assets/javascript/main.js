@@ -954,7 +954,7 @@ switchModeListener.addEventListener('click', e => {
 });
 
 
-function scan_top(cell, grid, limit) {
+function scan_top(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
     let minscan = new_minscan = 0;
     for (let row = cell.i-1; row >= cell.i-limit; row--) {
@@ -972,7 +972,7 @@ function scan_top(cell, grid, limit) {
             if (!tempCell.mapped) {
                 if (tempCell.level >= minscan) {
                     tempCell.mapped = true;
-                    paintCell(tempCell);
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
                 }
             }
         }
@@ -980,7 +980,7 @@ function scan_top(cell, grid, limit) {
     }
 }
 
-function scan_bot(cell, grid, limit) {
+function scan_bot(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
     let minscan = new_minscan = 0;
     for (let row = cell.i+1; row <= cell.i+limit; row++) {
@@ -998,7 +998,7 @@ function scan_bot(cell, grid, limit) {
             if (!tempCell.mapped) {
                 if (tempCell.level >= minscan) {
                     tempCell.mapped = true;
-                    paintCell(tempCell);
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
                 }
             }
         }
@@ -1006,7 +1006,7 @@ function scan_bot(cell, grid, limit) {
     }
 }
 
-function scan_rig(cell, grid, limit) {
+function scan_rig(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
     let minscan = new_minscan = 0;
     for (let col = cell.j+1; col <= cell.j+limit; col++) {
@@ -1024,7 +1024,7 @@ function scan_rig(cell, grid, limit) {
             if (!tempCell.mapped) {
                 if (tempCell.level >= minscan) {
                     tempCell.mapped = true;
-                    paintCell(tempCell);
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
                 }
             }
         }
@@ -1032,15 +1032,13 @@ function scan_rig(cell, grid, limit) {
     }
 }
 
-function scan_lef(cell, grid, limit) {
+function scan_lef(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
     let minscan = new_minscan = 0;
     for (let col = cell.j-1; col >= cell.j-limit; col--) {
         if (col < 0)
             break;
-        console.log(col, cell.i, cell.j);
         for (let row = cell.i-(cell.j-col-1); row <= cell.i+(cell.j-col-1); row++) {
-            console.log(row, rows);
             if (row < 0)
                 continue;
             else if (row >= rows)
@@ -1052,33 +1050,106 @@ function scan_lef(cell, grid, limit) {
             if (!tempCell.mapped) {
                 if (tempCell.level >= minscan) {
                     tempCell.mapped = true;
-                    paintCell(tempCell);
+                    setTimeout(()=>{paintCellMapped(tempCell);}, delay);
                 }
             }
         }
         minscan = new_minscan;
-        }
+    }
 }
 
-function explore(grid, start, moveFunction) {
+function basic_move(cell, grid, prevMove) {
+    let nextCell = null;
+    let rows = grid.length, columns = grid[0].length;
+    let move = prevMove;
+    
+    let counter = 0;
+    let ret = {
+        cell: null,
+        move: null,
+        counter: counter,
+    }
+    while (counter < 4) {
+        counter++;
+        //console.log(counter);
+        let di = 0, dj = 0;
+
+        if (move == 'u')
+            di = -1;
+        else if (move == 'd')
+            di = 1;
+        else if (move == 'r')
+            dj = 1;
+        else if (move == 'l')
+            dj = -1;
+
+        ret.move = move;
+        ret.counter = counter;
+
+        let row = cell.i + di;
+        let col = cell.j + dj;
+
+        if (row >= 0 && row < rows && col >= 0 && col < columns) {
+            nextCell = grid[row][col];
+            //console.log("Next cell? ", nextCell);
+            if (!nextCell.visited) {
+                ret.cell = nextCell;
+                return ret;
+            }
+        }
+
+        if (move == 'u')
+            move = 'r';
+        else if (move == 'r')
+            move = 'd';
+        else if (move == 'd')
+            move = 'l';
+        else if (move == 'l')
+            move = 'u'
+    }
+
+    ret.counter = 4;
+    return ret;
+}
+
+function tempF(cell, delay) {
+    setTimeout(()=>{paintCell(cell);}, delay);
+}
+
+function explore(grid, start, moveFunction, delay) {
 
     let limit = 10;
     let cell = start;
+    let move = 'u';
+    let countcheck = null;
+    let obj = null
+
+    let time = 0;
     while (true) {
+        time += delay;
+        //console.log("at ", cell.i, cell.j);
         cell.visited = true;
         cell.mapped = true;
-        paintCell(cell);
+        //setTimeout((cell)=>{console.log('painting og');paintCell(cell);}, time)
+        tempF(cell, time);
 
         // scan
-        scan_top(cell, grid, limit);
-        scan_bot(cell, grid, limit);
-        scan_rig(cell, grid, limit);
-        scan_lef(cell, grid, limit);
+        time += delay;
+        scan_top(cell, grid, limit, time);
+        time += delay;
+        scan_bot(cell, grid, limit, time);
+        time += delay;
+        scan_rig(cell, grid, limit, time);
+        time += delay;
+        scan_lef(cell, grid, limit, time);
 
         // move
-
-
-        break;
+        obj = moveFunction(cell, grid, move);
+        move = obj.move;
+        //console.log(obj);
+        if (obj.counter >= 4)
+            break;
+        cell = obj.cell;
     }
 }
 
