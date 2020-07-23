@@ -72,6 +72,18 @@ class Grid {
     }
 }
 
+function gridHide(grid) {
+    let rows = grid.length, columns = grid[0].length;
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            let cell = grid[i][j];
+            cell.mapped = false;
+            paintCell(cell);
+        }
+    }
+}
+
 function gridApply(grid, i, j, distortion) {
     let rows = grid.length, columns = grid[0].length;
 
@@ -580,6 +592,15 @@ function getRandomProperty(object) {
 }
 
 
+
+
+
+
+
+
+
+
+
 ///////////////
 //  main.js  //
 ///////////////
@@ -590,9 +611,27 @@ function getRandomProperty(object) {
 // the webpage itself) of nodes. Nodes have position, and level. The default
 // level is 8. Colour-coding of the levels will be defined in the CSS, and 
 // representation in HTML is as classes.
+let traditonalButtons = [
+    'resetsearch', 
+    'resetboard',
+    'genrandom',
+    'search',
+    'energy',
+    'time',
+    'assel',
+    'djsel',
+];
+
+let universalButtons = [
+    'tickbut',
+]
+
+let explorationButtons = [
+]
 
 let BASE_LEVEL = 8;
 let rows = 0, columns = 0;
+let explorationMode = false;
 let gridObject = null;
 
 // Variables that help define actions when the mouse moves over the nodes in
@@ -608,176 +647,166 @@ let tick = 100;
 
 let starti = 0, startj = 0, endi = 0, endj = 0;
 
-window.addEventListener('load', () => {
-    //console.log("load");
-    let grid = document.getElementsByClassName('gridrow')[0];
-    let classes = grid.classList;
+let grid = document.getElementsByClassName('gridrow')[0];
+let classes = grid.classList;
 
-    // Get the number of rows
-    rows = parseInt(classes[2]);
-    columns = parseInt(classes[3]);
+// Get the number of rows
+rows = parseInt(classes[2]);
+columns = parseInt(classes[3]);
 
-    // hardcoded for quick prototyping, refactor
-    starti = 34;
-    startj = 4;
-    endi = 4;
-    endj = 44;
+// hardcoded for quick prototyping, refactor
+starti = 34;
+startj = 4;
+endi = 4;
+endj = 44;
 
-    //console.log("initing grid");
-    gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL, true);
+//console.log("initing grid");
+gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL, true);
+randomSurface(gridObject.grid);
 
-    // Event listeners for all nodes. When the cell style is updated, so is
-    // the node in the JavaScript representation
-    window.addEventListener('mouseup', e => {
-        painting = false;
-        moveStart = false;
-        moveEnd = false;
-        //console.log('mouseup! pressed = ', painting);
-    });
+// Event listeners for all nodes. When the cell style is updated, so is
+// the node in the JavaScript representation
+window.addEventListener('mouseup', e => {
+    painting = false;
+    moveStart = false;
+    moveEnd = false;
+    //console.log('mouseup! pressed = ', painting);
+});
 
-    // Adding EventListeners to the grid so painting/moving can be done
-    for (let i = 0; i < 40; i++) {
-        for (let j = 0; j < 50; j++) {
-            let mouseTarget = document.getElementById(i+'-'+j);
+// Adding EventListeners to the grid so painting/moving can be done
+for (let i = 0; i < 40; i++) {
+    for (let j = 0; j < 50; j++) {
+        let mouseTarget = document.getElementById(i+'-'+j);
+        let cell = cellFromUI(mouseTarget, gridObject.grid);
+
+        mouseTarget.addEventListener('mousedown', e => {
+            if (execution)
+                return;
+            if (i == starti && j == startj) {
+                moveStart = true;
+            }
+            else if (i == endi && j == endj) {
+                moveEnd = true;
+            }
+            else {
+                painting = true;
+                //console.log('mousedown! pressed = ', painting);
+            }
+        });
+
+        mouseTarget.addEventListener('click', e => {
+            if (execution)
+                return;
             let cell = cellFromUI(mouseTarget, gridObject.grid);
+            setLevel(cell, level);
+            paintCell(cell);
+        })
 
-            mouseTarget.addEventListener('mousedown', e => {
-                if (execution)
-                    return;
-                if (i == starti && j == startj) {
-                    moveStart = true;
-                }
-                else if (i == endi && j == endj) {
-                    moveEnd = true;
-                }
-                else {
-                    painting = true;
-                    //console.log('mousedown! pressed = ', painting);
-                }
-            });
+        mouseTarget.addEventListener('mouseleave', e => {
+            if (execution)
+                return;
+            if (moveStart) {
+                cell.start = false;
+                paintCell(cell);
+            }
+            else if (moveEnd) {
+                cell.end = false;
+                paintCell(cell);
+            }
+        });
 
-            mouseTarget.addEventListener('click', e => {
-                if (execution)
-                    return;
+        mouseTarget.addEventListener('mouseenter', e => {
+            if (execution)
+                return;
+            if (moveStart) {
+                starti = i;
+                startj = j;
+                cell.start = true;
+                paintCell(cell);
+            }
+            else if (moveEnd) {
+                endi = i;
+                endj = j;
+                cell.end = true;
+                paintCell(cell);
+            }
+            else if (painting) {
+                //console.log("Mouse entered ", mouseTarget.id, 'while clicked');
                 let cell = cellFromUI(mouseTarget, gridObject.grid);
                 setLevel(cell, level);
                 paintCell(cell);
-            })
-
-            mouseTarget.addEventListener('mouseleave', e => {
-                if (execution)
-                    return;
-                if (moveStart) {
-                    cell.start = false;
-                    paintCell(cell);
-                }
-                else if (moveEnd) {
-                    cell.end = false;
-                    paintCell(cell);
-                }
-            });
-
-            mouseTarget.addEventListener('mouseenter', e => {
-                if (execution)
-                    return;
-                if (moveStart) {
-                    starti = i;
-                    startj = j;
-                    cell.start = true;
-                    paintCell(cell);
-                }
-                else if (moveEnd) {
-                    endi = i;
-                    endj = j;
-                    cell.end = true;
-                    paintCell(cell);
-                }
-                else if (painting) {
-                    //console.log("Mouse entered ", mouseTarget.id, 'while clicked');
-                    let cell = cellFromUI(mouseTarget, gridObject.grid);
-                    setLevel(cell, level);
-                    paintCell(cell);
-                }
-            });
-        }
-    }
-
-    // Adding EventListeners to the UI Elements
-    let tempElem = document.getElementById('resetsearch')
-    tempElem.addEventListener('click', e => {
-        if (execution)
-            return;
-        resetSearch(gridObject.grid);
-    });
-
-    tempElem = document.getElementById('resetboard')
-    tempElem.addEventListener('click', e => {
-        if (execution)
-            return;
-        resetGrid(gridObject.grid);
-    });
-
-    tempElem = document.getElementById('genrandom')
-    tempElem.addEventListener('click', e => {
-        if (execution)
-            return;
-        randomSurface(gridObject.grid);
-    });
-
-    tempElem = document.getElementById('search');
-    tempElem.addEventListener('click', e => {
-        if (execution)
-            return;
-        let speed = 1000/tick;
-        run(speed);
-    });
-
-
-    async function run (delay) {
-        execution = true;
-        toggleUIVisual(true);
-        let start = gridObject.grid[starti][startj];
-        let end = gridObject.grid[endi][endj];
-        let pathdel = null;
-        if (func == 'astar') {
-            pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
-        }
-        else {
-            pathdel = await djikstra(gridObject.grid, start, end, optimFunction, delay);
-        }
-        let temp = document.getElementById('crsearch');
-        temp.innerText = 'Searching';
-        //console.log("happens after", pathdel);
-        let pathfound = false;
-        setTimeout(()=>{
-            pathfound = paintPath(pathdel.path);
-        }, pathdel.time*delay);
-        //setTimeout(()=>{console.log("complete")}, timedelay*delay);
-        setTimeout(()=>{
-            execution = false;
-            toggleUIVisual(false);
-            if (!pathfound) {
-                temp.innerText = 'There was no viable path found';
             }
-            else {
-                temp.innerText = 'Optimal path found';
-            }
-        }, pathdel.time*delay);
+        });
     }
+}
 
+// Adding EventListeners to the UI Elements
+let tempElem = document.getElementById('resetsearch')
+tempElem.addEventListener('click', e => {
+    if (execution)
+        return;
+    resetSearch(gridObject.grid);
 });
 
-function toggleUIVisual(disable) {
-    let elems = [
-        'resetsearch', 
-        'resetboard',
-        'genrandom',
-        'search',
-        'energy',
-        'time',
-        'assel',
-        'djsel',
-    ];
+tempElem = document.getElementById('resetboard')
+tempElem.addEventListener('click', e => {
+    if (execution)
+        return;
+    resetGrid(gridObject.grid);
+});
+
+tempElem = document.getElementById('genrandom')
+tempElem.addEventListener('click', e => {
+    if (execution)
+        return;
+    randomSurface(gridObject.grid);
+});
+
+tempElem = document.getElementById('search');
+tempElem.addEventListener('click', e => {
+    if (execution)
+        return;
+    let speed = 1000/tick;
+    run(speed);
+});
+
+
+async function run (delay) {
+    execution = true;
+    toggleUIVisual(true, traditonalButtons);
+    toggleUIVisual(true, universalButtons);
+    let start = gridObject.grid[starti][startj];
+    let end = gridObject.grid[endi][endj];
+    let pathdel = null;
+    if (func == 'astar') {
+        pathdel = await astar(gridObject.grid, start, end, optimFunction, manhattanDist, delay);
+    }
+    else {
+        pathdel = await djikstra(gridObject.grid, start, end, optimFunction, delay);
+    }
+    let temp = document.getElementById('crsearch');
+    temp.innerText = 'Searching';
+    //console.log("happens after", pathdel);
+    let pathfound = false;
+    setTimeout(()=>{
+        pathfound = paintPath(pathdel.path);
+    }, pathdel.time*delay);
+    //setTimeout(()=>{console.log("complete")}, timedelay*delay);
+    setTimeout(()=>{
+        execution = false;
+        toggleUIVisual(false, traditonalButtons);
+        toggleUIVisual(false, universalButtons);
+        if (!pathfound) {
+            temp.innerText = 'There was no viable path found';
+        }
+        else {
+            temp.innerText = 'Optimal path found';
+        }
+    }, pathdel.time*delay);
+}
+
+
+function toggleUIVisual(disable, elems) {
     elems.forEach(elemname => {
         let elem = document.getElementById(elemname);
         if (disable)
