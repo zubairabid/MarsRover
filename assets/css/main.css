@@ -156,7 +156,7 @@
 }
 
 .cell.unmapped {
-    background-color: grey;
+    background-color: lightgrey;
 }
 
 .gridrow {

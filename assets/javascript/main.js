@@ -72,13 +72,13 @@ class Grid {
     }
 }
 
-function gridHide(grid) {
+function gridToggle(grid, visible) {
     let rows = grid.length, columns = grid[0].length;
 
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < columns; j++) {
             let cell = grid[i][j];
-            cell.mapped = false;
+            cell.mapped = visible;
             paintCell(cell);
         }
     }
@@ -927,19 +927,160 @@ tempElem.addEventListener('click', e => {
 let switchModeListener = document.getElementById('switchmodes');
 
 switchModeListener.addEventListener('click', e => {
+    // if we were in exploration mode, we need to leave it
     if (explorationMode) {
+        // Clear/create flag-based/visual UI blocks
         explorationMode = false;
-        toggleUIVisual(false, traditionalButtons);
-        toggleUIVisual(true, explorationButtons);
-    }
-    else {
-        explorationMode = true;
         toggleUIVisual(true, traditionalButtons);
         toggleUIVisual(false, explorationButtons);
+
+        // reset the grid and unhide it
+        // resetSearch(gridObject.grid);
+        randomSurface(gridObject.grid);
+        gridToggle(gridObject.grid, true);
+    }
+    // if we want to move to exploration mode in the first place,
+    else {
+        // Clear/create flag-based/visual UI blocks
+        explorationMode = true;
+        toggleUIVisual(false, traditionalButtons);
+        toggleUIVisual(true, explorationButtons);
+
+        // reset any existing searches, change the grid, and hide it
+        resetSearch(gridObject.grid);
+        randomSurface(gridObject.grid);
+        gridToggle(gridObject.grid, false);
     }
 });
 
 
+function scan_top(cell, grid, limit) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let row = cell.i-1; row >= cell.i-limit; row--) {
+        if (row < 0)
+            break;
+        for (let col = cell.j-(cell.i-row); col <= cell.j+(cell.i-row); col++) {
+            if (col < 0)
+                continue;
+            else if (col >= columns) 
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    paintCell(tempCell);
+                }
+            }
+        }
+        minscan = new_minscan;
+    }
+}
+
+function scan_bot(cell, grid, limit) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let row = cell.i+1; row <= cell.i+limit; row++) {
+        if (row >= rows)
+            break;
+        for (let col = cell.j-(row-cell.i); col <= cell.j+(row-cell.i); col++) {
+            if (col < 0)
+                continue;
+            else if (col >= columns) 
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    paintCell(tempCell);
+                }
+            }
+        }
+        minscan = new_minscan;
+    }
+}
+
+function scan_rig(cell, grid, limit) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let col = cell.j+1; col <= cell.j+limit; col++) {
+        if (col >= columns)
+            break;
+        for (let row = cell.i-(col-cell.j-1); row <= cell.i+(col-cell.j-1); row++) {
+            if (row < 0)
+                continue;
+            else if (row >= rows)
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    paintCell(tempCell);
+                }
+            }
+        }
+        minscan = new_minscan;
+    }
+}
+
+function scan_lef(cell, grid, limit) {
+    let rows = grid.length, columns = grid[0].length;
+    let minscan = new_minscan = 0;
+    for (let col = cell.j-1; col >= cell.j-limit; col--) {
+        if (col < 0)
+            break;
+        console.log(col, cell.i, cell.j);
+        for (let row = cell.i-(cell.j-col-1); row <= cell.i+(cell.j-col-1); row++) {
+            console.log(row, rows);
+            if (row < 0)
+                continue;
+            else if (row >= rows)
+                break;
+
+            let tempCell = grid[row][col];
+            if (tempCell.level > new_minscan)
+                new_minscan = tempCell.level;
+            if (!tempCell.mapped) {
+                if (tempCell.level >= minscan) {
+                    tempCell.mapped = true;
+                    paintCell(tempCell);
+                }
+            }
+        }
+        minscan = new_minscan;
+        }
+}
+
+function explore(grid, start, moveFunction) {
+
+    let limit = 10;
+    let cell = start;
+    while (true) {
+        cell.visited = true;
+        cell.mapped = true;
+        paintCell(cell);
+
+        // scan
+        scan_top(cell, grid, limit);
+        scan_bot(cell, grid, limit);
+        scan_rig(cell, grid, limit);
+        scan_lef(cell, grid, limit);
+
+        // move
+
+
+        break;
+    }
+}
 
 
 
@@ -952,8 +1093,8 @@ async function run (delay) {
     execution = true;
 
     // Visually disable the traditional exec + universal buttons.
-    toggleUIVisual(true, traditionalButtons);
-    toggleUIVisual(true, universalButtons);
+    toggleUIVisual(false, traditionalButtons);
+    toggleUIVisual(false, universalButtons);
 
     // Get the cell representations of the start and end cells
     let start = gridObject.grid[starti][startj];
@@ -999,8 +1140,8 @@ async function run (delay) {
     setTimeout(()=>{
         execution = false;
 
-        toggleUIVisual(false, traditionalButtons);
-        toggleUIVisual(false, universalButtons);
+        toggleUIVisual(true, traditionalButtons);
+        toggleUIVisual(true, universalButtons);
 
         if (!pathfound) {
             searchStatusElem.innerText = 'There was no viable path found';
@@ -1012,12 +1153,12 @@ async function run (delay) {
 }
 
 
-function toggleUIVisual(disable, elems) {
+function toggleUIVisual(enable, elems) {
     elems.forEach(elemname => {
         let elem = document.getElementById(elemname);
-        if (disable)
-            elem.classList.add('disabled');
-        else
+        if (enable)
             elem.classList.remove('disabled');
+        else
+            elem.classList.add('disabled');
     });
 }
