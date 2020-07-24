@@ -8,31 +8,36 @@
                 </button>
             </div>
             <div class="modal-body">
-                <h5>Martian Surface Explorer</h5>
+                <h5>Changing Height Levels/Adding Walls</h5>
                 <p>
-                Hello! This project is based on the idea of a surface-exploring
-                robot, that can do two primary things:
+                To paint a level directly onto the grid, click on a level from
+                the options in the top-right, then click and drag on the grid 
+                to draw. You can make these <em>walls</em> by ensuring the level
+                difference of a cell from its neighbours is at least 5.
+                <img class="img-fluid" src="concepts/tut_levels.png" alt="concept art">
+                </p>
+                <h5>Change the Start/Stop</h5>
+                <p>
+                Click on the start/stop (shown below) and drag to the correct
+                location. Note that it is possible to drag them out of the grid,
+                and not possible to bring them back in, so please don't.
+                </p>
+                <h5>Resetting the Map to a flat surface</h5>
+                <p>Click on "Reset Terrain"</p>
+                <h5>Creating a new random map</h5>
+                <p>Click on "Random Terrain"</p>
+                <h5>Toggle between Pathfinding mode and Exploration mode</h5>
+                <p>
+                Click on the "Switch Modes" button. This will reset the map.
                 </p>
                 <ul>
                     <li>Pathfind the way to a given destination given a map</li>
                     <li>For unexplored terrain, map out a given area</li>
                 </ul>
-                <p>
-                In each case, the user (you) can pick a certain number of 
-                pathfinding/mapping algorithms available, and in case of the
-                pathfinder you can also choose a parameter you
-                want to optimise for:  either the <em>Energy Consumption</em> of the
-                rover while travelling, or the <em>Time Taken</em> by the rover to travel.
                 </p>
-                <p>
-                As the Martian terrain is not just walls existing in thin air,
-                the map given to the user is a <em>contour map.</em> 
-                </p>
-                <img class="img-fluid" src="concepts/marssurfacebetter.png" alt="concept art">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
