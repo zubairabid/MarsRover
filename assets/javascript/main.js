@@ -60,12 +60,6 @@ import {basic_move} from './exploration/basicmove.js';
 //  main.js  //
 ///////////////
 
-
-window.addEventListener('load', e => {
-    //let conceptModal = document.getElementById('concept');
-    $('conceptModal').modal('show');
-});
-
 // When the webpage is loaded for the first time, the board will be initialised
 // The board is a rows x columns grid (we get the row and column count from
 // the webpage itself) of nodes. Nodes have position, and level. The default
