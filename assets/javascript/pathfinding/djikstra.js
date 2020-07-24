@@ -26,7 +26,7 @@ export function djikstra(grid, start, end, costFunction, delay) {
             if (currentCell == end) {
                 let path = [];
                 let curr = currentCell;
-                while (curr!= null) {
+                while (curr!= start) {
                     curr.path = true;
                     path.push(curr);
                     curr = curr.parent;
