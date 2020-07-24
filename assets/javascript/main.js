@@ -396,6 +396,7 @@ switchModeListener.addEventListener('click', e => {
         searchBarElem.style.display = "block";
 
         // Reset start/end
+        gridObject.grid[0][0].start = false;
         gridObject.grid[starti][startj].start = true;
         gridObject.grid[endi][endj].end = true;
 
@@ -415,9 +416,7 @@ switchModeListener.addEventListener('click', e => {
 
         // Remove end, and set start to top left
         gridObject.grid[starti][startj].start = false;
-        starti = 0;
-        startj = 0;
-        gridObject.grid[starti][startj].start = true;
+        gridObject.grid[0][0].start = true;
         gridObject.grid[endi][endj].end = false;
 
         // reset any existing searches, change the grid, and hide it
@@ -479,7 +478,7 @@ exploreListener.addEventListener('click', e => {
 /////////////////////////
 
 async function runExplore(delay) {
-    let start = gridObject.grid[starti][startj];
+    let start = gridObject.grid[0][0];
     execution = true;
 
     // Visually disable the traditional exec + universal buttons.

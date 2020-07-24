@@ -1,0 +1,86 @@
+<div class="modal fade" id="concept" tabindex="-1" role="dialog" aria-labelledby="conceptModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="conceptModal">Concept</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h4>Martian Surface Explorer</h4>
+                <p>
+                This is a rover built to operate on the Martian surface. Its
+                primary functions are:
+                </p>
+                <ul>
+                    <li>Pathfind the way to a given destination, given a map</li>
+                    <li>For unexplored terrain, map out a given area</li>
+                </ul>
+                <p>
+                In each case, you can pick a certain number of 
+                pathfinding/mapping algorithms available, and (in case of the
+                pathfinder) you can also choose a parameter you wish to
+                optimise the path for.
+                </p>
+                <h5>The Martian Surface</h5>
+                <img class="img-fluid" src="concepts/marssurfacebetterann.png" alt="concept art">
+                <p class="mt-2">
+                The Martian surface is not flat, nor full of random walls - it
+                has hills, valleys, plains, and plateaus. So, the map of the
+                surface provided here is similar: Each cell has a height level, 
+                and the rover in navigating can choose to stay on the same
+                level, climb, or speed downhill. This choice affects its
+                energy consumption and speed: going downhill for example is
+                very fast, but also a lot more energy-consuming than either of
+                the other two (as it needs to constantly monitor to balance
+                while speeding).
+                </p>
+                <p>
+                The differences in height levels also determines
+                if navigating past a slope is impractical; thus creating "walls".
+                It's not impossible to get past them, just more impractical due
+                to the energy expenditure.
+                </p>
+                <img class="img-fluid" src="concepts/energy-time-spent.png" alt="concept art">
+
+                <h5 class="mt-2">Pathfinding</h5>
+                <p>
+                For pathfinding, the rover can try either Djikstra's algorithm 
+                or A-Star search. In each case, the answer should be the same,
+                the "optimal" path according to the parameters set. Djikstra's
+                however can be slower, as A-Star search also uses a 
+                heuristic (Manhattan Distance) to try optimise its search
+                space. 
+                </p>
+                <p>
+                The parameters can be either Time optimisation or 
+                Energy optimisation - as seen earlier, some paths may
+                be more beneficial for time, and others for energy. Of course,
+                in both cases, if at any point the slope is too large, the rover won't
+                go in that direction.
+                </p>
+                <img class="img-fluid" src="concepts/pathfinding.png" alt="concept art">
+
+                <h5 class="mt-3">Exploration</h5>
+                <p>
+                Exploration is simple: the terrain is unknown, and the rover
+                must estimate the height levels of various cells in its visible
+                range the best it can, and then move to try and cover more area.
+                </p>
+                <img class="img-fluid" src="concepts/explogeom.png" alt="concept art">
+                <p class="mt-3">
+                The rover's scanning ability is limited by geometry. If there 
+                is an obstacle in its line of sight, it is unable to see beyond
+                that.
+                </p>
+                <img class="img-fluid" src="concepts/exploration.png" alt="concept art">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>

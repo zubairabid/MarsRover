@@ -2,6 +2,7 @@
 layout: default
 ---
 {% include tutorial.html %}
+{% include concept.html %}
 <div class="container-fluid fullscreen">
     <div class="row h-100">
         <div class="col-md-12 col-lg-9">
@@ -16,8 +17,11 @@ layout: default
             <hr>
             {% include switchmodes.html %}
             <hr>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#tutorial">
+            <button type="button control-panel" class="btn btn-primary" data-toggle="modal" data-target="#tutorial">
                 Launch tutorial
+            </button>
+            <button type="button control-panel" class="btn btn-primary" data-toggle="modal" data-target="#concept">
+                What is the concept?
             </button>
         </div>
     </div>

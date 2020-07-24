@@ -4,7 +4,7 @@
 
 layout: home
 rows: 40
-columns: 50
+columns: 60
 ---
 
 {% for row in (1..page.rows) %}
