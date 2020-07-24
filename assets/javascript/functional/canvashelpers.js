@@ -105,3 +105,13 @@ export function paintPath(path) {
     return true;
 }
 
+
+export function paintGrid(grid) {
+    let rows = grid.length, columns = grid[0].length;
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < columns; j++) {
+            paintCell(grid[i][j]);
+        }
+    }
+}

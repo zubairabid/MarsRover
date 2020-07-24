@@ -2,15 +2,12 @@
 //  functional/cell.js  //
 //////////////////////////
 
-import {compareCells} from './functional/cell.js'
-
 //////////////////////////
 //  functional/grid.js  //
 //////////////////////////
 
 import {Grid} from './functional/grid.js'
 import {gridToggle} from './functional/grid.js'
-import {gridApply} from './functional/grid.js'
 import {resetGrid} from './functional/grid.js'
 import {resetSearch} from './functional/grid.js'
 import {resetExplore} from './functional/grid.js'
@@ -22,8 +19,8 @@ import {resetExplore} from './functional/grid.js'
 import {cellFromUI} from './functional/canvashelpers.js'
 import {setLevel} from './functional/canvashelpers.js'
 import {paintCell} from './functional/canvashelpers.js'
-import {paintCellMapped} from './functional/canvashelpers.js'
 import {paintPath} from './functional/canvashelpers.js'
+import {paintGrid} from './functional/canvashelpers.js'
 
 /////////////////////////////////
 //  algorithms/pathHelpers.js  //
@@ -126,6 +123,7 @@ endj = 44;
 // Creating the grid
 gridObject = new Grid(rows, columns, starti, startj, endi, endj, BASE_LEVEL, true);
 randomSurface(gridObject.grid);
+paintGrid(gridObject.grid);
 
 toggleUIVisual(false, explorationButtons);
 
@@ -341,6 +339,7 @@ resetSearchElem.addEventListener('click', e => {
         return;
 
     resetSearch(gridObject.grid);
+    paintGrid(gridObject.grid);
 });
 
 // If "reset board" is clicked, reset the grid to all cells @ level 8
@@ -350,6 +349,7 @@ resetGridElem.addEventListener('click', e => {
         return;
 
     resetGrid(gridObject.grid);
+    paintGrid(gridObject.grid);
 });
 
 // If "generate random terrain" is clicked, apply random distortions to the
@@ -360,6 +360,7 @@ randomSurfaceElem.addEventListener('click', e => {
         return;
 
     randomSurface(gridObject.grid);
+    paintGrid(gridObject.grid);
 });
 
 // If the "search" button is clicked, calculate the delay from tick speed
@@ -390,9 +391,9 @@ switchModeListener.addEventListener('click', e => {
         gridObject.grid[endi][endj].end = true;
 
         // reset the grid and unhide it
-        // resetSearch(gridObject.grid);
         randomSurface(gridObject.grid);
         gridToggle(gridObject.grid, true);
+        paintGrid(gridObject.grid);
     }
     // if we want to move to exploration mode in the first place,
     else {
@@ -412,6 +413,7 @@ switchModeListener.addEventListener('click', e => {
         resetSearch(gridObject.grid);
         randomSurface(gridObject.grid);
         gridToggle(gridObject.grid, false);
+        paintGrid(gridObject.grid);
     }
 });
 
@@ -438,6 +440,7 @@ resetexploreListener.addEventListener('click', e => {
         return;
 
     resetExplore(gridObject.grid);
+    paintGrid(gridObject.grid);
     // command to remove visited and add unmapped to grid
 });
 
@@ -448,6 +451,7 @@ newterrainListener.addEventListener('click', e => {
     // reset command
     resetExplore(gridObject.grid);
     randomSurface(gridObject.grid);
+    paintGrid(gridObject.grid);
 });
 
 exploreListener.addEventListener('click', e => {

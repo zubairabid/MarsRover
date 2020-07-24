@@ -41,7 +41,6 @@ export function gridToggle(grid, visible) {
         for (let j = 0; j < columns; j++) {
             let cell = grid[i][j];
             cell.mapped = visible;
-            paintCell(cell);
         }
     }
 }
@@ -66,7 +65,6 @@ export function gridApply(grid, i, j, distortion) {
                 distortionCell = -1 * distortionCell;
 
             cellApply(cell, distortionCell);
-            paintCell(cell);
 
             //console.log("distorting ", gridi, gridj, " by ", distortionCell);
             gridj += 1;
@@ -84,7 +82,6 @@ export function resetGrid(grid) {
         for (let j = 0; j < columns; j++) {
             let cell = grid[i][j];
             cell.level = 8;
-            paintCell(cell);
         }
     }
 }
@@ -98,7 +95,6 @@ export function resetSearch(grid) {
             cell.path = false;
             cell.closed = false;
 
-            paintCell(cell);
             paintCellPath(cell);
         }
     }
@@ -111,8 +107,6 @@ export function resetExplore(grid) {
             let cell = grid[i][j];
             cell.visited = false;
             cell.mapped = false;
-
-            paintCell(cell);
         }
     }
 }
