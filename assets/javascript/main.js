@@ -82,6 +82,7 @@ for (let i = 1; i <= 16; i++) {
 
 let universalButtons = [
     'tickbut',
+    'switchmodes',
 ]
 
 let explorationButtons = [
@@ -254,6 +255,9 @@ let resetGridElem = document.getElementById('resetboard')
 let resetSearchElem = document.getElementById('resetsearch');
 let randomSurfaceElem = document.getElementById('genrandom')
 
+let searchBarElem = document.getElementById('searchbar');
+let exploreBarElem = document.getElementById('explorebar');
+
 let tickValueListener = document.getElementById('tick');
 let tickButListener = document.getElementById('tickbut');
 
@@ -379,12 +383,17 @@ tempElem.addEventListener('click', e => {
 let switchModeListener = document.getElementById('switchmodes');
 
 switchModeListener.addEventListener('click', e => {
+    // disable if execution is on
+    if (execution)
+        return;
     // if we were in exploration mode, we need to leave it
     if (explorationMode) {
         // Clear/create flag-based/visual UI blocks
         explorationMode = false;
         toggleUIVisual(true, traditionalButtons);
         toggleUIVisual(false, explorationButtons);
+        exploreBarElem.style.display = "none";
+        searchBarElem.style.display = "block";
 
         // Reset start/end
         gridObject.grid[starti][startj].start = true;
@@ -401,6 +410,8 @@ switchModeListener.addEventListener('click', e => {
         explorationMode = true;
         toggleUIVisual(false, traditionalButtons);
         toggleUIVisual(true, explorationButtons);
+        exploreBarElem.style.display = "block";
+        searchBarElem.style.display = "none";
 
         // Remove end, and set start to top left
         gridObject.grid[starti][startj].start = false;
@@ -469,8 +480,20 @@ exploreListener.addEventListener('click', e => {
 
 async function runExplore(delay) {
     let start = gridObject.grid[starti][startj];
+    execution = true;
 
-    explore(gridObject.grid, start, exploreFunc, delay);
+    // Visually disable the traditional exec + universal buttons.
+    toggleUIVisual(false, explorationButtons);
+    toggleUIVisual(false, universalButtons);
+
+    let explDel = await explore(gridObject.grid, start, exploreFunc, delay);
+
+    setTimeout(() => {
+        toggleUIVisual(true, explorationButtons);
+        toggleUIVisual(true, universalButtons);
+
+        execution = false;
+    }, explDel);
 }
 
 async function run (delay) {
