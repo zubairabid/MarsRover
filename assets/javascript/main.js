@@ -2,290 +2,31 @@
 //  functional/cell.js  //
 //////////////////////////
 
-class Cell {
-    constructor(i, j, start, end, level, mapped) {
-        this.i = i;
-        this.j = j;
-        this.level = level;
-        this.baseLevel = level;
-        this.start = start;
-        this.end = end;
-        this.visited = false;
-        this.closed = false;
-        this.parent = null;
-        this.path = false;
-        this.mapped = mapped;
-
-        this.distance = 0;
-        this.heuristic = 0;
-        this.score = 0;
-    }
-}
-
-function cellApply(cell, distortionCell) {
-    let currentLevel = cell.level;
-    
-    if (currentLevel > 8 && distortionCell < 0)
-        return;
-    if (currentLevel < 8 && distortionCell > 0)
-        return;
-
-
-    let newLevel = currentLevel + distortionCell;
-
-    //console.log("old, new, distortion: ", currentLevel, newLevel, distortionCell);
-    newLevel = newLevel > 16? 16: newLevel;
-    newLevel = newLevel < 1? 1 : newLevel;
-    //console.log("level: ", newLevel);
-    cell.level = newLevel;
-}
-
-function compareCells(a, b) {
-    if (a.score < b.score) return -1;
-    if (a.score > b.score) return 1;
-    return 0;
-}
+import {compareCells} from './functional/cell.js'
 
 //////////////////////////
 //  functional/grid.js  //
 //////////////////////////
 
+import {Grid} from './functional/grid.js'
+import {gridToggle} from './functional/grid.js'
+import {gridApply} from './functional/grid.js'
+import {resetGrid} from './functional/grid.js'
+import {resetSearch} from './functional/grid.js'
+import {resetExplore} from './functional/grid.js'
+import {getNeighbours} from './functional/grid.js'
+
 // functional/grid.js
-class Grid {
-    constructor(rows, columns, starti, startj, endi, endj, level, mapped) {
-        this.rows = rows;
-        this.columns = columns;
-        this.grid = [];
-        this.createGrid(starti, startj, endi, endj, level, mapped);
-    }
-
-    createGrid(starti, startj, endi, endj, level, mapped) {
-        for (let i = 0; i < this.rows; i++) {
-            let rowgrid = [];
-            for (let j = 0; j < this.columns; j++) {
-                let cell = new Cell(i, j, (i==starti && j==startj), (i==endi && j==endj), level, mapped);
-                paintCell(cell);
-                rowgrid.push(cell);
-            }
-            this.grid.push(rowgrid);
-        }
-    }
-}
-
-function gridToggle(grid, visible) {
-    let rows = grid.length, columns = grid[0].length;
-
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < columns; j++) {
-            let cell = grid[i][j];
-            cell.mapped = visible;
-            paintCell(cell);
-        }
-    }
-}
-
-function gridApply(grid, i, j, distortion) {
-    let rows = grid.length, columns = grid[0].length;
-
-    let gridi = i;
-    let gridj = j;
-
-    for (i = 0; i < distortion.length; i++) {
-        if (gridi >= rows)
-            break;
-        for (j = 0; j < distortion[0].length; j++) {
-            if (gridj >= columns)
-                break;
-
-            let cell = grid[gridi][gridj];
-            let distortionCell = distortion[i][j];
-            
-            if (Math.random() < 0.5)
-                distortionCell = -1 * distortionCell;
-
-            cellApply(cell, distortionCell);
-            paintCell(cell);
-
-            //console.log("distorting ", gridi, gridj, " by ", distortionCell);
-            gridj += 1;
-        }
-        gridj -= (j);
-        gridi += 1;
-    }
-}
-
-function resetGrid(grid) {
-    resetSearch(grid);
-    let rows = grid.length, columns = grid[0].length;
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < columns; j++) {
-            let cell = grid[i][j];
-            cell.level = 8;
-            paintCell(cell);
-        }
-    }
-}
-
-function resetSearch(grid) {
-    let rows = grid.length, columns = grid[0].length;
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < columns; j++) {
-            let cell = grid[i][j];
-            cell.visited = false;
-            cell.path = false;
-            cell.closed = false;
-
-            paintCell(cell);
-            paintCellPath(cell);
-        }
-    }
-}
-
-function resetExplore(grid) {
-    let rows = grid.length, columns = grid[0].length;
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < columns; j++) {
-            let cell = grid[i][j];
-            cell.visited = false;
-            cell.mapped = false;
-
-            paintCell(cell);
-        }
-    }
-}
-
-function getNeighbours(grid, cell) {
-    neighbours = [];
-    let i = 0, j = 0;
-    let rows = grid.length, columns = grid[0].length;
-
-    i = cell.i + 1;
-    if (i < rows)
-        neighbours.push(grid[i][cell.j]);
-    i = cell.i - 1;
-    if (i >= 0)
-        neighbours.push(grid[i][cell.j]);
-    j = cell.j-1;
-    if (j >= 0)
-        neighbours.push(grid[cell.i][j])
-    j = cell.j+1;
-    if (j < columns)
-        neighbours.push(grid[cell.i][j])
-
-    return neighbours;
-}
-
 ///////////////////////
 //  canvasHelper.js  //
 ///////////////////////
+import {cellFromUI} from './functional/canvashelpers.js'
+import {setLevel} from './functional/canvashelpers.js'
+import {paintCell} from './functional/canvashelpers.js'
+import {paintCellState} from './functional/canvashelpers.js'
+import {paintCellMapped} from './functional/canvashelpers.js'
+import {paintPath} from './functional/canvashelpers.js'
 
-
-let levels = [];
-for (let i = 1; i <=16; i++) {
-    levels.push("l"+i);
-}
-
-let stateOptions = ['visited', 'closed'];
-
-// Takes an HTML div with id of format num-num and returns the corresponding
-// `cell` on the functional `grid`
-function cellFromUI(elem, grid) {
-    let elemName = elem.id;
-    let rc = elemName.split('-');
-    let row = parseInt(rc[0]);
-    let col = parseInt(rc[1]);
-    return grid[row][col];
-}
-
-// Takes a `cell` from the functional `grid` and returns the corresponding 
-// HTML div
-function uiFromCell(cell) {
-    let name = (cell.i)+'-'+(cell.j);
-    let elem = document.getElementById(name);
-    return elem;
-}
-
-// Takes a functional `cell` and sets the level
-function setLevel(cell, level) {
-    if (cell.level == level)
-        cell.level = cell.baseLevel;
-    else
-        cell.level = level;
-}
-
-// Takes a cell and updates the UI paint accordingly
-function paintCell(cell) {
-    paintCellStart(cell);
-    paintCellEnd(cell);
-    paintCellLevel(cell);
-    paintCellState(cell);
-    paintCellMapped(cell);
-}
-
-function paintCellMapped(cell) {
-    let elem = uiFromCell(cell);
-    if (cell.mapped)
-        elem.classList.remove('unmapped');
-    else
-        elem.classList.add('unmapped');
-}
-
-function paintCellStart(cell) {
-    let elem = uiFromCell(cell);
-    if (cell.start)
-        elem.classList.add('start');
-    else
-        elem.classList.remove('start');
-}
-
-function paintCellEnd(cell) {
-    let elem = uiFromCell(cell);
-    if (cell.end)
-        elem.classList.add('end');
-    else
-        elem.classList.remove('end');
-}
-
-function paintCellLevel(cell) {
-    let elem = uiFromCell(cell);
-
-    elem.classList.remove(...levels);
-    elem.classList.add("l"+cell.level);
-    //console.log(cell);
-}
-
-function paintCellState(cell) {
-    let elem = uiFromCell(cell);
-
-    elem.classList.remove(...stateOptions);
-    if (cell.closed)
-        elem.classList.add('closed');
-    else if (cell.visited)
-        elem.classList.add('visited');
-}
-
-function paintCellPath(cell) {
-    let elem = uiFromCell(cell);
-
-    if (cell.path)
-        elem.classList.add('path');
-    else
-        elem.classList.remove('path');
-}
-
-// Paints out the final path
-function paintPath(path) {
-    if (path.length == 0) {
-        console.log("No path :(");
-        return false;
-    }
-    for (let i = 0; i < path.length; i++) {
-        let cell = path[i];
-        let elem = uiFromCell(cell);
-        elem.classList.add('path');
-    }
-    return true;
-}
 
 ////////////////////////
 //  end of that file  //
@@ -298,7 +39,7 @@ function paintPath(path) {
 const INF = 10000000
 
 function getCost(currentCell, neighbour, costFunction) {
-    cost = costFunction(currentCell, neighbour);
+    let cost = costFunction(currentCell, neighbour);
     return cost;
 }
 
@@ -356,7 +97,7 @@ function djikstra(grid, start, end, costFunction, delay) {
         // counter is used to delay the timer
         let counter = 0;
         while (openList.length > 0) {
-            currentCell = openList[0];
+            let currentCell = openList[0];
             currentCell.closed = true;
 
             // paint the cell 
@@ -364,7 +105,7 @@ function djikstra(grid, start, end, costFunction, delay) {
 
             // If currentCell is final, return the successful path
             if (currentCell == end) {
-                path = [];
+                let path = [];
                 let curr = currentCell;
                 while (curr!= null) {
                     curr.path = true;
@@ -446,7 +187,7 @@ function astar(grid, start, end, costFunction, heuristicFunction, delay) {
         // counter is used to delay the timer
         let counter = 0;
         while (openList.length > 0) {
-            currentCell = openList[0];
+            let currentCell = openList[0];
             currentCell.closed = true;
 
             // paint the cell 
@@ -454,7 +195,7 @@ function astar(grid, start, end, costFunction, heuristicFunction, delay) {
 
             // If currentCell is final, return the successful path
             if (currentCell == end) {
-                path = [];
+                let path = [];
                 let curr = currentCell;
                 while (curr!= null) {
                     curr.path = true;
@@ -616,7 +357,8 @@ function getRandomProperty(object) {
 
 function scan_top(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
+    let minscan = 0;
+    let new_minscan = 0;
     for (let row = cell.i-1; row >= cell.i-limit; row--) {
         if (row < 0)
             break;
@@ -642,7 +384,8 @@ function scan_top(cell, grid, limit, delay) {
 
 function scan_bot(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
+    let minscan = 0;
+    let new_minscan = 0;
     for (let row = cell.i+1; row <= cell.i+limit; row++) {
         if (row >= rows)
             break;
@@ -668,7 +411,8 @@ function scan_bot(cell, grid, limit, delay) {
 
 function scan_rig(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
+    let minscan = 0;
+    let new_minscan = 0;
     for (let col = cell.j+1; col <= cell.j+limit; col++) {
         if (col >= columns)
             break;
@@ -694,7 +438,8 @@ function scan_rig(cell, grid, limit, delay) {
 
 function scan_lef(cell, grid, limit, delay) {
     let rows = grid.length, columns = grid[0].length;
-    let minscan = new_minscan = 0;
+    let minscan = 0;
+    let new_minscan = 0;
     for (let col = cell.j-1; col >= cell.j-limit; col--) {
         if (col < 0)
             break;
@@ -1013,6 +758,10 @@ let currentOptimElem = document.getElementById('cropt');
 let currentAlgoElem = document.getElementById('cralgo');
 let currentTickElem = document.getElementById('crtck');
 let searchStatusElem = document.getElementById('crsearch');
+let tempElem = document.getElementById('search');
+let resetGridElem = document.getElementById('resetboard')
+let resetSearchElem = document.getElementById('resetsearch');
+let randomSurfaceElem = document.getElementById('genrandom')
 
 let tickValueListener = document.getElementById('tick');
 let tickButListener = document.getElementById('tickbut');
@@ -1093,7 +842,6 @@ tickButListener.addEventListener('click', e => {
 });
 
 // If "reset search" is clicked, remove search indicators: closed, visited, path
-let resetSearchElem = document.getElementById('resetsearch');
 resetSearchElem.addEventListener('click', e => {
     // disable if executing or in explorationMode
     if (execution || explorationMode)
@@ -1103,7 +851,6 @@ resetSearchElem.addEventListener('click', e => {
 });
 
 // If "reset board" is clicked, reset the grid to all cells @ level 8
-resetGridElem = document.getElementById('resetboard')
 resetGridElem.addEventListener('click', e => {
     // disable if executing or in explorationMode
     if (execution || explorationMode)
@@ -1114,7 +861,6 @@ resetGridElem.addEventListener('click', e => {
 
 // If "generate random terrain" is clicked, apply random distortions to the
 // surface of the grid
-randomSurfaceElem = document.getElementById('genrandom')
 randomSurfaceElem.addEventListener('click', e => {
     // disable if executing or in explorationMode
     if (execution || explorationMode)
@@ -1125,7 +871,6 @@ randomSurfaceElem.addEventListener('click', e => {
 
 // If the "search" button is clicked, calculate the delay from tick speed
 // and search for the optimal path with config flags set
-tempElem = document.getElementById('search');
 tempElem.addEventListener('click', e => {
     // disable if executing or in explorationMode
     if (execution || explorationMode)
